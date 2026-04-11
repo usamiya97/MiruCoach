@@ -108,20 +108,20 @@ export default function LoginPage() {
 
           <div>
             <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
-              確認コード（6桁）
+              確認コード（8桁）
             </label>
             <input
               id="otp"
               type="text"
               inputMode="numeric"
-              pattern="[0-9]{6}"
-              maxLength={6}
+              pattern="[0-9]{8}"
+              maxLength={8}
               required
               autoComplete="one-time-code"
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent text-center tracking-[0.5em] text-lg"
-              placeholder="000000"
+              placeholder="00000000"
             />
           </div>
 
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || otp.length !== 6}
+            disabled={loading || otp.length !== 8}
             className="w-full py-2.5 bg-rose-400 text-white rounded-lg text-sm font-medium hover:bg-rose-500 disabled:opacity-50 transition-colors"
           >
             {loading ? '確認中...' : 'ログイン'}
