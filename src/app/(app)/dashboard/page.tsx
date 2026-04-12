@@ -7,6 +7,13 @@ import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
 import type { MealLog } from '@/types'
 
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 10) return 'おはようございます 🌅'
+  if (hour < 17) return 'こんにちは ☀️'
+  return 'おつかれさまです 🌙'
+}
+
 function toDateStr(date: Date): string {
   return [
     date.getFullYear(),
@@ -78,7 +85,7 @@ export default async function DashboardPage({
       {/* ヘッダー */}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold text-gray-900">
-          {isToday ? 'おはようございます 🌿' : '過去の記録'}
+          {isToday ? getGreeting() : '過去の記録'}
         </h1>
         {profile?.plan === 'premium' && (
           <span className="text-xs bg-rose-100 text-rose-500 px-2 py-0.5 rounded-full font-medium">
