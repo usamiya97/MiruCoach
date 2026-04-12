@@ -83,7 +83,7 @@ export default function MealPage() {
     showSuccess('食事を記録しました')
   }
 
-  async function handleManualSave(e: React.FormEvent) {
+  async function handleManualSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setManualSaving(true)
     setError(null)
@@ -112,7 +112,7 @@ export default function MealPage() {
     }
   }
 
-  async function handleWeightSave(e: React.FormEvent) {
+  async function handleWeightSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setWeightSaving(true)
     setError(null)
@@ -134,6 +134,16 @@ export default function MealPage() {
     } finally {
       setWeightSaving(false)
     }
+  }
+
+  async function handleDelete(id: string) {
+    const { error } = await supabase.from('meal_logs').delete().eq('id', id)
+    if (error) {
+      setError('削除に失敗しました')
+      return
+    }
+    await fetchTodayMeals()
+    showSuccess('削除しました')
   }
 
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0)
@@ -268,7 +278,7 @@ export default function MealPage() {
             <p className="text-sm font-semibold text-gray-800">今日の記録</p>
             <p className="text-sm font-semibold text-rose-400">{totalCalories} kcal</p>
           </div>
-          {meals.map((meal) => <MealCard key={meal.id} meal={meal} />)}
+          {meals.map((meal) => <MealCard key={meal.id} meal={meal} onDelete={handleDelete} />)}
         </Card>
       )}
     </div>
