@@ -9,6 +9,10 @@ export interface User {
   stripe_customer_id: string | null
   coach_name: string
   coach_tone: CoachTone
+  height: number | null
+  goal_weight: number | null
+  age: number | null
+  target_calories: number
   created_at: string
 }
 

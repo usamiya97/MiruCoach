@@ -11,7 +11,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const text = input.trim()
     if (!text || sending || disabled) return

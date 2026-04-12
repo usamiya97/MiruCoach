@@ -15,7 +15,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSendOtp(e: React.FormEvent) {
+  async function handleSendOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -34,7 +34,7 @@ export default function SignupPage() {
     setStep('otp')
   }
 
-  async function handleVerifyOtp(e: React.FormEvent) {
+  async function handleVerifyOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -51,7 +51,7 @@ export default function SignupPage() {
       setError('コードが正しくないか期限切れです。もう一度お試しください。')
       return
     }
-    router.push('/dashboard')
+    router.push('/onboarding')
     router.refresh()
   }
 
