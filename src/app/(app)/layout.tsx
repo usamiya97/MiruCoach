@@ -16,6 +16,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <NavItem href="/dashboard" icon="🏠" label="ホーム" />
         <NavItem href="/meal" icon="🍽️" label="食事" />
         <NavItem href="/coach" icon="🌿" label="コーチ" />
+        <NavItem href="/settings" icon="⚙️" label="設定" />
       </nav>
     </div>
   )
