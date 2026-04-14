@@ -45,7 +45,7 @@ export default async function DashboardPage({
   const [profileRes, mealLogsRes, weightLogsRes] = await Promise.all([
     supabase
       .from('users')
-      .select('plan, coach_name')
+      .select('plan, coach_name, target_calories')
       .eq('id', user.id)
       .single(),
     supabase
@@ -68,7 +68,7 @@ export default async function DashboardPage({
   const weightLogs = weightLogsRes.data ?? []
 
   const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0)
-  const targetCalories = 1800
+  const targetCalories = profile?.target_calories ?? 1800
 
   // 同じ日に複数記録がある場合は最後の値を使う
   const weightByDate: Record<string, number> = {}
