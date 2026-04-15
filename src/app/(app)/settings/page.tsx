@@ -106,10 +106,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
-      <h1 className="text-lg font-bold text-gray-900">設定</h1>
+    <div className="min-h-screen max-w-xl lg:max-w-3xl mx-auto">
 
-      <form onSubmit={handleSave} className="space-y-4">
+      {/* グラデーションヘッダー */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-10">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-6 -translate-x-6" />
+        <div className="relative">
+          <p className="text-white/70 text-sm font-medium tracking-wide">MY PROFILE</p>
+          <h1 className="text-white text-2xl font-bold mt-1">マイ設定</h1>
+          <p className="text-white/60 text-xs mt-1">目標や体型情報を管理します</p>
+        </div>
+      </div>
+
+      <div className="px-4 -mt-4 relative z-10 pb-4 space-y-3">
+      <form onSubmit={handleSave} className="space-y-3">
         <Card className="space-y-4">
           <p className="text-sm font-semibold text-gray-800">あなたの情報</p>
 
@@ -204,10 +215,15 @@ export default function SettingsPage() {
           <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
         )}
 
-        <Button type="submit" className="w-full" loading={saving}>
-          保存する
-        </Button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
+        >
+          {saving ? '保存中...' : '保存する'}
+        </button>
       </form>
+      </div>
     </div>
   )
 }

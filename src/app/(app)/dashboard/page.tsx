@@ -1,18 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import Card from '@/components/ui/Card'
-import MealCard from '@/components/meal/MealCard'
+import CalorieRing from '@/components/ui/CalorieRing'
 import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
+import MealCard from '@/components/meal/MealCard'
 import type { MealLog } from '@/types'
-
-function getGreeting(): string {
-  const hour = new Date().getHours()
-  if (hour < 10) return 'おはようございます 🌅'
-  if (hour < 17) return 'こんにちは ☀️'
-  return 'おつかれさまです 🌙'
-}
 
 function toDateStr(date: Date): string {
   return [
@@ -20,6 +13,20 @@ function toDateStr(date: Date): string {
     String(date.getMonth() + 1).padStart(2, '0'),
     String(date.getDate()).padStart(2, '0'),
   ].join('-')
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 10) return 'おはようございます'
+  if (hour < 17) return 'こんにちは'
+  return 'おつかれさまです'
+}
+
+function getGreetingIcon(): string {
+  const hour = new Date().getHours()
+  if (hour < 10) return '🌅'
+  if (hour < 17) return '☀️'
+  return '🌙'
 }
 
 export default async function DashboardPage({
@@ -37,40 +44,36 @@ export default async function DashboardPage({
   const isToday = targetDate === todayStr
 
   const dayStart = `${targetDate}T00:00:00`
-  const dayEnd = `${targetDate}T23:59:59`
+  const dayEnd   = `${targetDate}T23:59:59`
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
   const [profileRes, mealLogsRes, weightLogsRes] = await Promise.all([
-    supabase
-      .from('users')
+    supabase.from('users')
       .select('plan, coach_name, target_calories')
       .eq('id', user.id)
       .single(),
-    supabase
-      .from('meal_logs')
+    supabase.from('meal_logs')
       .select('*')
       .eq('user_id', user.id)
       .gte('logged_at', dayStart)
       .lte('logged_at', dayEnd)
       .order('logged_at', { ascending: false }),
-    supabase
-      .from('body_logs')
+    supabase.from('body_logs')
       .select('weight, logged_at')
       .eq('user_id', user.id)
       .gte('logged_at', thirtyDaysAgo.toISOString())
       .order('logged_at', { ascending: true }),
   ])
 
-  const profile = profileRes.data
+  const profile      = profileRes.data
   const meals: MealLog[] = mealLogsRes.data ?? []
-  const weightLogs = weightLogsRes.data ?? []
+  const weightLogs   = weightLogsRes.data ?? []
 
-  const totalCalories = meals.reduce((sum, m) => sum + m.calories, 0)
+  const totalCalories  = meals.reduce((sum, m) => sum + m.calories, 0)
   const targetCalories = profile?.target_calories ?? 1800
 
-  // 同じ日に複数記録がある場合は最後の値を使う
   const weightByDate: Record<string, number> = {}
   for (const log of weightLogs) {
     weightByDate[log.logged_at.slice(0, 10)] = log.weight
@@ -80,103 +83,138 @@ export default async function DashboardPage({
     ? weightChartData[weightChartData.length - 1].weight
     : null
 
+  const [y, m, d] = targetDate.split('-').map(Number)
+  const dateLabel = new Date(y, m - 1, d).toLocaleDateString('ja-JP', {
+    month: 'long', day: 'numeric', weekday: 'short',
+  })
+
   return (
-    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
-      {/* ヘッダー */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-lg font-bold text-gray-900">
-          {isToday ? getGreeting() : '過去の記録'}
-        </h1>
-        {profile?.plan === 'premium' && (
-          <span className="text-xs bg-rose-100 text-rose-500 px-2 py-0.5 rounded-full font-medium">
-            Premium
-          </span>
-        )}
+    <div className="min-h-screen max-w-xl lg:max-w-3xl mx-auto">
+
+      {/* ── ヒーローセクション ── */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-28">
+
+        {/* 装飾サークル */}
+        <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
+        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-8 -translate-x-8" />
+
+        {/* ヘッダー */}
+        <div className="relative flex items-start justify-between mb-10">
+          <div>
+            {isToday ? (
+              <>
+                <p className="text-white/70 text-sm">{dateLabel}</p>
+                <h1 className="text-white text-xl font-bold mt-0.5">
+                  {getGreeting()} {getGreetingIcon()}
+                </h1>
+              </>
+            ) : (
+              <>
+                <p className="text-white/70 text-sm">過去の記録</p>
+                <h1 className="text-white text-xl font-bold mt-0.5">{dateLabel}</h1>
+              </>
+            )}
+          </div>
+          {profile?.plan === 'premium' && (
+            <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/30">
+              ✨ Premium
+            </span>
+          )}
+        </div>
+
+        {/* カロリーリング */}
+        <div className="relative flex justify-center">
+          <CalorieRing consumed={totalCalories} target={targetCalories} />
+        </div>
       </div>
 
-      {/* 日付ナビゲーター */}
-      <Card className="py-2">
-        <DateNavigator date={targetDate} />
-      </Card>
+      {/* ── カードセクション（ヒーローに重なる） ── */}
+      <div className="-mt-16 px-4 space-y-3 relative z-10">
 
-      {/* カロリーサマリー */}
-      <Card>
-        <p className="text-xs text-gray-400 mb-2">
-          {isToday ? '今日のカロリー' : 'この日のカロリー'}
-        </p>
-        <div className="flex items-end gap-2 mb-3">
-          <span className="text-4xl font-bold text-gray-900">{totalCalories}</span>
-          <span className="text-gray-400 mb-1">/ {targetCalories} kcal</span>
+        {/* 日付ナビゲーター */}
+        <div className="bg-white rounded-2xl shadow-sm px-4 py-3">
+          <DateNavigator date={targetDate} />
         </div>
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all ${
-              totalCalories > targetCalories ? 'bg-amber-400' : 'bg-rose-400'
-            }`}
-            style={{ width: `${Math.min((totalCalories / targetCalories) * 100, 100)}%` }}
-          />
-        </div>
-        <p className="text-xs text-gray-400 mt-1.5 text-right">
-          残り {Math.max(targetCalories - totalCalories, 0)} kcal
-        </p>
-      </Card>
 
-      {/* 体重グラフ */}
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-800">体重の推移（30日）</p>
-          {latestWeight && (
-            <span className="text-sm font-bold text-rose-400">{latestWeight} kg</span>
-          )}
-        </div>
-        <WeightChart data={weightChartData} />
-      </Card>
+        {/* 今日の食事 */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-gray-50">
+            <h2 className="text-sm font-bold text-gray-800">
+              {isToday ? '今日の食事' : 'この日の食事'}
+            </h2>
+            {isToday && (
+              <Link
+                href="/meal"
+                className="text-xs text-white bg-rose-400 hover:bg-rose-500 px-3 py-1 rounded-full transition-colors font-medium"
+              >
+                ＋ 追加
+              </Link>
+            )}
+          </div>
 
-      {/* 食事一覧 */}
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-800">
-            {isToday ? '今日の食事' : 'この日の食事'}
-          </p>
-          {isToday && (
-            <Link href="/meal" className="text-xs text-rose-400 hover:underline">
-              追加 →
-            </Link>
-          )}
+          <div className="px-4 pb-2">
+            {meals.length === 0 ? (
+              <div className="py-8 text-center">
+                <p className="text-2xl mb-2">🍽️</p>
+                <p className="text-sm text-gray-400">まだ記録がありません</p>
+                {isToday && (
+                  <Link
+                    href="/meal"
+                    className="inline-block mt-3 text-xs text-rose-400 hover:underline"
+                  >
+                    食事を記録する →
+                  </Link>
+                )}
+              </div>
+            ) : (
+              meals.map((meal) => <MealCard key={meal.id} meal={meal} />)
+            )}
+          </div>
         </div>
-        {meals.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-4">記録がありません</p>
-        ) : (
-          meals.map((meal) => <MealCard key={meal.id} meal={meal} />)
-        )}
-      </Card>
 
-      {/* コーチCTA（今日のみ表示） */}
-      {isToday && (
-        <Link href="/coach">
-          <Card className="bg-rose-50 border border-rose-100 cursor-pointer hover:bg-rose-100 transition-colors">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl">🌿</span>
-              <div>
+        {/* 体重グラフ */}
+        <div className="bg-white rounded-2xl shadow-sm p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-800">体重の推移</h2>
+            {latestWeight && (
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-bold text-rose-500">{latestWeight}</span>
+                <span className="text-xs text-gray-400">kg</span>
+              </div>
+            )}
+          </div>
+          <WeightChart data={weightChartData} />
+        </div>
+
+        {/* コーチ CTA */}
+        {isToday && (
+          <Link href="/coach">
+            <div className="bg-gradient-to-r from-rose-500 to-pink-400 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                🌿
+              </div>
+              <div className="flex-1">
                 {profile?.plan !== 'premium' ? (
                   <>
-                    <p className="text-sm font-semibold text-gray-800">AIコーチ機能を使う</p>
-                    <p className="text-xs text-gray-500">月額980円でコーチと毎日会話できます</p>
+                    <p className="text-white font-semibold text-sm">AIコーチを始める</p>
+                    <p className="text-white/70 text-xs mt-0.5">月額980円でコーチと毎日会話</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-semibold text-gray-800">
+                    <p className="text-white font-semibold text-sm">
                       {profile?.coach_name ?? 'ミル'}に話しかける
                     </p>
-                    <p className="text-xs text-gray-500">今日の調子はどうですか？</p>
+                    <p className="text-white/70 text-xs mt-0.5">今日の調子はどうですか？</p>
                   </>
                 )}
               </div>
-              <span className="ml-auto text-gray-300">›</span>
+              <span className="text-white/50 text-lg">›</span>
             </div>
-          </Card>
-        </Link>
-      )}
+          </Link>
+        )}
+
+        <div className="h-2" /> {/* 下余白 */}
+      </div>
     </div>
   )
 }

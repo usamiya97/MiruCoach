@@ -9,23 +9,21 @@ type Step = 'email' | 'otp'
 
 export default function SignupPage() {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('email')
-  const [email, setEmail] = useState('')
-  const [otp, setOtp] = useState('')
+  const [step, setStep]       = useState<Step>('email')
+  const [email, setEmail]     = useState('')
+  const [otp, setOtp]         = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
 
   async function handleSendOtp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
     const supabase = createClient()
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { shouldCreateUser: true },
     })
-
     setLoading(false)
     if (error) {
       setError('登録に失敗しました。しばらくしてからもう一度お試しください。')
@@ -38,14 +36,8 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
-
     const supabase = createClient()
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'email',
-    })
-
+    const { error } = await supabase.auth.verifyOtp({ email, token: otp, type: 'email' })
     setLoading(false)
     if (error) {
       setError('コードが正しくないか期限切れです。もう一度お試しください。')
@@ -56,32 +48,32 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm p-8">
-      <div className="text-center mb-8">
-        <p className="text-3xl mb-1">🌿</p>
-        <h1 className="text-xl font-bold text-gray-900">ミルコーチ</h1>
-        <p className="text-sm text-gray-500 mt-1">新規登録</p>
+    <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+      <div className="text-center">
+        <h2 className="text-lg font-bold text-gray-900">新規登録</h2>
+        <p className="text-xs text-gray-400 mt-1">
+          {step === 'email' ? '無料ではじめましょう' : `${email} に送信しました`}
+        </p>
       </div>
 
       {step === 'email' ? (
         <form onSubmit={handleSendOtp} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 tracking-wide uppercase">
               メールアドレス
             </label>
             <input
-              id="email"
               type="email"
               required
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-all"
               placeholder="you@example.com"
             />
           </div>
 
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-gray-400 leading-relaxed">
             登録することで
             <a href="#" className="text-rose-400 hover:underline">利用規約</a>
             および
@@ -89,33 +81,31 @@ export default function SignupPage() {
             に同意したものとみなします。
           </p>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <p className="text-xs text-red-500">{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-rose-400 text-white rounded-lg text-sm font-medium hover:bg-rose-500 disabled:opacity-50 transition-colors"
+            className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
           >
             {loading ? '送信中...' : '確認コードを送る'}
           </button>
 
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-xs text-gray-400">
             すでにアカウントをお持ちの方は{' '}
-            <Link href="/login" className="text-rose-500 hover:underline">
+            <Link href="/login" className="text-rose-500 font-medium hover:underline">
               ログイン
             </Link>
           </p>
         </form>
       ) : (
         <form onSubmit={handleVerifyOtp} className="space-y-4">
-          <p className="text-sm text-gray-600 text-center">
-            <span className="font-medium">{email}</span> に
-            <br />
-            確認コードを送りました
-          </p>
-
           <div>
-            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-semibold text-gray-500 mb-1.5 tracking-wide uppercase">
               確認コード（8桁）
             </label>
             <input
@@ -128,29 +118,29 @@ export default function SignupPage() {
               autoComplete="one-time-code"
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400 focus:border-transparent text-center tracking-[0.5em] text-lg"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-center tracking-[0.6em] text-lg font-bold transition-all"
               placeholder="00000000"
             />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+              <p className="text-xs text-red-500">{error}</p>
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={loading || otp.length !== 8}
-            className="w-full py-2.5 bg-rose-400 text-white rounded-lg text-sm font-medium hover:bg-rose-500 disabled:opacity-50 transition-colors"
+            className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
           >
             {loading ? '確認中...' : '登録して始める'}
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              setStep('email')
-              setOtp('')
-              setError(null)
-            }}
-            className="w-full text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            onClick={() => { setStep('email'); setOtp(''); setError(null) }}
+            className="w-full text-xs text-gray-400 hover:text-gray-600 transition-colors"
           >
             ← メールアドレスを変更する
           </button>

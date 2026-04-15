@@ -98,7 +98,7 @@ export default function CoachPage() {
   // 未課金ユーザー向けペイウォール
   if (!isPremium) {
     return (
-      <div className="max-w-md mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
+      <div className="max-w-xl lg:max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
         <div className="text-5xl">🌿</div>
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-gray-900">AIコーチ「{coachName}」</h1>
@@ -134,7 +134,7 @@ export default function CoachPage() {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)]">
+    <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100vh-64px)]">
       {/* ヘッダー */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-sm">
