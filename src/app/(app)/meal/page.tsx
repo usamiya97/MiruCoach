@@ -54,11 +54,17 @@ export default function MealPage() {
 
   async function handlePhotoSave(data: {
     calories: number; note: string; meal_type: MealType; photo_url: string | null
+    imageBase64?: string; mimeType?: string
   }) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const { error } = await supabase.from('meal_logs').insert({
-      user_id: user.id, ...data, logged_at: new Date().toISOString(),
+      user_id: user.id,
+      calories: data.calories,
+      note: data.note,
+      meal_type: data.meal_type,
+      photo_url: data.photo_url,
+      logged_at: new Date().toISOString(),
     })
     if (error) throw new Error(error.message)
     await fetchTodayMeals()
