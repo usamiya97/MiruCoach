@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Leaf, Sparkles, UtensilsCrossed, Plus, Sunrise, Sun, Moon } from 'lucide-react'
 import CalorieRing from '@/components/ui/CalorieRing'
 import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
@@ -22,11 +23,11 @@ function getGreeting(): string {
   return 'おつかれさまです'
 }
 
-function getGreetingIcon(): string {
+function GreetingIcon() {
   const hour = new Date().getHours()
-  if (hour < 10) return '🌅'
-  if (hour < 17) return '☀️'
-  return '🌙'
+  if (hour < 10) return <Sunrise size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
+  if (hour < 17) return <Sun     size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
+  return               <Moon    size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
 }
 
 export default async function DashboardPage({
@@ -105,7 +106,7 @@ export default async function DashboardPage({
               <>
                 <p className="text-white/70 text-sm">{dateLabel}</p>
                 <h1 className="text-white text-xl font-bold mt-0.5">
-                  {getGreeting()} {getGreetingIcon()}
+                  {getGreeting()}<GreetingIcon />
                 </h1>
               </>
             ) : (
@@ -116,8 +117,9 @@ export default async function DashboardPage({
             )}
           </div>
           {profile?.plan === 'premium' && (
-            <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/30">
-              ✨ Premium
+            <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/30 flex items-center gap-1">
+              <Sparkles size={11} strokeWidth={2} />
+              Premium
             </span>
           )}
         </div>
@@ -145,22 +147,25 @@ export default async function DashboardPage({
             {isToday && (
               <Link
                 href="/meal"
-                className="text-xs text-white bg-rose-400 hover:bg-rose-500 px-3 py-1 rounded-full transition-colors font-medium"
+                className="flex items-center gap-1 text-xs text-white bg-rose-400 hover:bg-rose-500 px-3 py-1.5 rounded-full transition-colors font-medium"
               >
-                ＋ 追加
+                <Plus size={12} strokeWidth={2.5} />
+                追加
               </Link>
             )}
           </div>
 
           <div className="px-4 pb-2">
             {meals.length === 0 ? (
-              <div className="py-8 text-center">
-                <p className="text-2xl mb-2">🍽️</p>
+              <div className="py-8 text-center space-y-2">
+                <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto">
+                  <UtensilsCrossed size={20} className="text-gray-300" strokeWidth={1.5} />
+                </div>
                 <p className="text-sm text-gray-400">まだ記録がありません</p>
                 {isToday && (
                   <Link
                     href="/meal"
-                    className="inline-block mt-3 text-xs text-rose-400 hover:underline"
+                    className="inline-block mt-1 text-xs text-rose-400 hover:underline"
                   >
                     食事を記録する →
                   </Link>
@@ -189,9 +194,12 @@ export default async function DashboardPage({
         {/* コーチ CTA */}
         {isToday && (
           <Link href="/coach">
-            <div className="bg-gradient-to-r from-rose-500 to-pink-400 rounded-2xl p-4 flex items-center gap-4 shadow-sm">
-              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
-                🌿
+            <div className="bg-gradient-to-r from-rose-500 to-pink-400 rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-rose-200">
+              <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                {profile?.plan === 'premium'
+                  ? <Leaf size={22} className="text-white" strokeWidth={1.8} />
+                  : <Sparkles size={22} className="text-white" strokeWidth={1.8} />
+                }
               </div>
               <div className="flex-1">
                 {profile?.plan !== 'premium' ? (
@@ -208,7 +216,7 @@ export default async function DashboardPage({
                   </>
                 )}
               </div>
-              <span className="text-white/50 text-lg">›</span>
+              <span className="text-white/40 text-xl">›</span>
             </div>
           </Link>
         )}

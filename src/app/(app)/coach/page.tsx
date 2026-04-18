@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Leaf, Check, Loader2 } from 'lucide-react'
 import ChatMessage from '@/components/coach/ChatMessage'
 import ChatInput from '@/components/coach/ChatInput'
 import type { CoachMessage } from '@/types'
@@ -99,7 +100,9 @@ export default function CoachPage() {
   if (!isPremium) {
     return (
       <div className="max-w-xl lg:max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
-        <div className="text-5xl">🌿</div>
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center shadow-lg shadow-rose-200">
+          <Leaf size={36} className="text-white" strokeWidth={1.5} />
+        </div>
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-gray-900">AIコーチ「{coachName}」</h1>
           <p className="text-sm text-gray-500 leading-relaxed">
@@ -108,14 +111,16 @@ export default function CoachPage() {
             あなた専属のコーチが継続をサポートします。
           </p>
         </div>
-        <ul className="text-sm text-gray-600 space-y-2 text-left w-full max-w-xs">
+        <ul className="text-sm text-gray-600 space-y-3 text-left w-full max-w-xs">
           {[
             '毎日の食事記録をコーチが分析',
             'サボった日も責めない会話設計',
             '体重の推移に基づく具体的なアドバイス',
           ].map((item) => (
-            <li key={item} className="flex items-start gap-2">
-              <span className="text-rose-400 flex-shrink-0">✓</span>
+            <li key={item} className="flex items-center gap-3">
+              <span className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+                <Check size={11} className="text-rose-500" strokeWidth={3} />
+              </span>
               {item}
             </li>
           ))}
@@ -123,7 +128,7 @@ export default function CoachPage() {
         <div className="w-full max-w-xs space-y-3">
           <Link
             href="/api/stripe/checkout"
-            className="block w-full py-3 bg-rose-400 text-white rounded-xl text-sm font-medium text-center hover:bg-rose-500 transition-colors"
+            className="block w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold text-center hover:opacity-90 transition-all shadow-sm shadow-rose-200"
           >
             月額980円で始める
           </Link>
@@ -136,9 +141,9 @@ export default function CoachPage() {
   return (
     <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100vh-64px)]">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-2">
-        <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-sm">
-          🌿
+      <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center shadow-sm">
+          <Leaf size={16} className="text-white" strokeWidth={2} />
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">{coachName}</p>
@@ -149,13 +154,14 @@ export default function CoachPage() {
       {/* メッセージ一覧 */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50">
         {messages.length === 0 && (
-          <div className="text-center py-8 space-y-2">
-            <p className="text-2xl">🌿</p>
-            <p className="text-sm text-gray-500">
-              こんにちは！{coachName}です。
-              <br />
-              今日の調子はどうですか？
-            </p>
+          <div className="text-center py-12 space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center mx-auto shadow-md shadow-rose-200">
+              <Leaf size={28} className="text-white" strokeWidth={1.5} />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-semibold text-gray-700">こんにちは！{coachName}です。</p>
+              <p className="text-sm text-gray-400">今日の調子はどうですか？</p>
+            </div>
           </div>
         )}
         {messages.map((msg) => (
@@ -163,11 +169,12 @@ export default function CoachPage() {
         ))}
         {sending && (
           <div className="flex gap-2">
-            <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center text-sm flex-shrink-0">
-              🌿
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center flex-shrink-0">
+              <Leaf size={14} className="text-white" strokeWidth={2} />
             </div>
-            <div className="bg-white shadow-sm rounded-2xl rounded-tl-sm px-4 py-3">
-              <p className="text-xs text-gray-400 animate-pulse">入力中...</p>
+            <div className="bg-white shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+              <Loader2 size={14} className="text-rose-300 animate-spin" />
+              <p className="text-xs text-gray-400">入力中...</p>
             </div>
           </div>
         )}

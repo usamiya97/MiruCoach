@@ -2,17 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { Camera, PenLine, Scale, Sunrise, Sun, Moon, Cookie } from 'lucide-react'
 import MealCard from '@/components/meal/MealCard'
 import PhotoUpload from '@/components/meal/PhotoUpload'
+import type { LucideIcon } from 'lucide-react'
 import type { MealLog, MealType } from '@/types'
 
 type Tab = 'photo' | 'manual' | 'weight'
 
-const mealTypeOptions: { value: MealType; label: string; emoji: string }[] = [
-  { value: 'breakfast', label: '朝食', emoji: '🌅' },
-  { value: 'lunch',     label: '昼食', emoji: '☀️' },
-  { value: 'dinner',    label: '夕食', emoji: '🌙' },
-  { value: 'snack',     label: '間食', emoji: '🍪' },
+const mealTypeOptions: { value: MealType; label: string; icon: LucideIcon }[] = [
+  { value: 'breakfast', label: '朝食', icon: Sunrise },
+  { value: 'lunch',     label: '昼食', icon: Sun     },
+  { value: 'dinner',    label: '夕食', icon: Moon    },
+  { value: 'snack',     label: '間食', icon: Cookie  },
 ]
 
 export default function MealPage() {
@@ -133,26 +135,27 @@ export default function MealPage() {
       <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-8">
         <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
         <h1 className="relative text-white text-xl font-bold">食事・体重を記録</h1>
-        <p className="relative text-white/70 text-sm mt-0.5">今日も記録しよう 💪</p>
+        <p className="relative text-white/70 text-sm mt-0.5">今日も記録しよう</p>
       </div>
 
       <div className="px-4 -mt-4 relative z-10 space-y-3">
         {/* タブ */}
         <div className="bg-white rounded-2xl shadow-sm p-1.5 flex gap-1">
           {([
-            { key: 'photo',  label: '📷 写真' },
-            { key: 'manual', label: '✏️ 手入力' },
-            { key: 'weight', label: '⚖️ 体重' },
-          ] as { key: Tab; label: string }[]).map(({ key, label }) => (
+            { key: 'photo',  label: '写真',  icon: Camera  },
+            { key: 'manual', label: '手入力', icon: PenLine },
+            { key: 'weight', label: '体重',  icon: Scale   },
+          ] as { key: Tab; label: string; icon: LucideIcon }[]).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => { setTab(key); setError(null) }}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                 tab === key
                   ? 'bg-gradient-to-r from-rose-500 to-pink-400 text-white shadow-sm'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
+              <Icon size={14} strokeWidth={2} />
               {label}
             </button>
           ))}
@@ -183,7 +186,9 @@ export default function MealPage() {
             <form onSubmit={handleManualSave} className="space-y-4">
               {/* 食事タイプ */}
               <div className="grid grid-cols-4 gap-2">
-                {mealTypeOptions.map((opt) => (
+                {mealTypeOptions.map((opt) => {
+                  const Icon = opt.icon
+                  return (
                   <button
                     key={opt.value}
                     type="button"
@@ -194,10 +199,10 @@ export default function MealPage() {
                         : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
                     }`}
                   >
-                    <span className="text-lg mb-0.5">{opt.emoji}</span>
+                    <Icon size={18} strokeWidth={1.8} className="mb-0.5" />
                     {opt.label}
                   </button>
-                ))}
+                )})}
               </div>
 
               <div>

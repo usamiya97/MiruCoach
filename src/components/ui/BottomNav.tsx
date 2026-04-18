@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { Home, UtensilsCrossed, Sparkles, Settings } from 'lucide-react'
 
 const navItems = [
-  { href: '/dashboard', icon: '🏠', label: 'ホーム' },
-  { href: '/meal',      icon: '🍽️', label: '食事' },
-  { href: '/coach',     icon: '🌿', label: 'コーチ' },
-  { href: '/settings',  icon: '⚙️', label: '設定' },
+  { href: '/dashboard', icon: Home,           label: 'ホーム' },
+  { href: '/meal',      icon: UtensilsCrossed, label: '食事' },
+  { href: '/coach',     icon: Sparkles,        label: 'コーチ' },
+  { href: '/settings',  icon: Settings,        label: '設定' },
 ]
 
 export default function BottomNav() {
@@ -15,7 +16,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-rose-100/50 flex pb-safe">
-      {navItems.map(({ href, icon, label }) => {
+      {navItems.map(({ href, icon: Icon, label }) => {
         const isActive = pathname.startsWith(href)
         return (
           <Link
@@ -23,9 +24,11 @@ export default function BottomNav() {
             href={href}
             className="flex-1 flex flex-col items-center justify-center py-2.5 gap-0.5 transition-all"
           >
-            <span className={`text-xl transition-transform ${isActive ? 'scale-110' : ''}`}>
-              {icon}
-            </span>
+            <Icon
+              size={20}
+              className={`transition-all ${isActive ? 'text-rose-500 scale-110' : 'text-gray-400'}`}
+              strokeWidth={isActive ? 2.5 : 1.8}
+            />
             <span className={`text-[10px] font-medium transition-colors ${
               isActive ? 'text-rose-500' : 'text-gray-400'
             }`}>

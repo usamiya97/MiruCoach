@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { X, Utensils } from 'lucide-react'
 import type { MealLog } from '@/types'
 
 const mealTypeLabel: Record<string, string> = {
@@ -10,14 +11,21 @@ const mealTypeLabel: Record<string, string> = {
   snack: '間食',
 }
 
+const mealTypeColor: Record<string, string> = {
+  breakfast: 'bg-amber-50 text-amber-500',
+  lunch:     'bg-sky-50 text-sky-500',
+  dinner:    'bg-indigo-50 text-indigo-500',
+  snack:     'bg-rose-50 text-rose-400',
+}
+
 interface MealCardProps {
   meal: MealLog
-  onDelete?: (id: string) => Promise<void>  // 渡さなければ削除ボタン非表示
+  onDelete?: (id: string) => Promise<void>
 }
 
 export default function MealCard({ meal, onDelete }: MealCardProps) {
-  const [confirming, setConfirming] = useState(false)  // 確認ステップ中か
-  const [deleting, setDeleting] = useState(false)       // 削除処理中か
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const time = new Date(meal.logged_at).toLocaleTimeString('ja-JP', {
     hour: '2-digit',
@@ -35,20 +43,18 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
   return (
     <div className="py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3">
-        {/* 写真 or 絵文字 */}
         {meal.photo_url ? (
           <img
             src={meal.photo_url}
             alt="食事写真"
-            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+            className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
           />
         ) : (
-          <div className="w-12 h-12 rounded-lg bg-rose-50 flex items-center justify-center flex-shrink-0 text-xl">
-            🍽️
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${mealTypeColor[meal.meal_type] ?? 'bg-gray-50 text-gray-400'}`}>
+            <Utensils size={18} strokeWidth={1.8} />
           </div>
         )}
 
-        {/* 食事情報 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-xs text-rose-400 font-medium">
@@ -57,28 +63,25 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
             <span className="text-xs text-gray-400">{time}</span>
           </div>
           {meal.note && (
-            <p className="text-sm text-gray-700 truncate">{meal.note}</p>
+            <p className="text-sm text-gray-700 truncate mt-0.5">{meal.note}</p>
           )}
         </div>
 
-        {/* カロリー */}
         <span className="text-sm font-semibold text-gray-800 flex-shrink-0">
-          {meal.calories} kcal
+          {meal.calories.toLocaleString()} kcal
         </span>
 
-        {/* 削除ボタン（onDelete が渡されたときだけ表示） */}
         {onDelete && !confirming && (
           <button
             onClick={() => setConfirming(true)}
-            className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 text-lg leading-none"
+            className="text-gray-300 hover:text-red-400 transition-colors flex-shrink-0 p-1"
             aria-label="削除"
           >
-            ✕
+            <X size={16} />
           </button>
         )}
       </div>
 
-      {/* 確認ステップ（confirming=true のときだけ表示） */}
       {confirming && (
         <div className="mt-2 flex items-center justify-end gap-2">
           <p className="text-xs text-gray-500 mr-1">削除しますか？</p>

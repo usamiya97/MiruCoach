@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ArrowUp } from 'lucide-react'
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>
@@ -15,7 +16,6 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
     e.preventDefault()
     const text = input.trim()
     if (!text || sending || disabled) return
-
     setSending(true)
     setInput('')
     try {
@@ -33,14 +33,14 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         onChange={(e) => setInput(e.target.value)}
         placeholder="メッセージを入力..."
         disabled={disabled || sending}
-        className="flex-1 px-4 py-2 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:opacity-50"
+        className="flex-1 px-4 py-2.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={!input.trim() || sending || disabled}
-        className="w-10 h-10 bg-rose-400 text-white rounded-full flex items-center justify-center hover:bg-rose-500 disabled:opacity-40 transition-colors flex-shrink-0"
+        className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-400 text-white rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all shadow-sm shadow-rose-200 flex-shrink-0"
       >
-        ↑
+        <ArrowUp size={18} strokeWidth={2.5} />
       </button>
     </form>
   )

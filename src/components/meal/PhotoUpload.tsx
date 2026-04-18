@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Camera, X, Loader2 } from 'lucide-react'
 import type { MealType, AnalyzeMealResponse } from '@/types'
 import Button from '@/components/ui/Button'
 
@@ -17,37 +18,33 @@ interface PhotoUploadProps {
 
 const mealTypeOptions: { value: MealType; label: string }[] = [
   { value: 'breakfast', label: '朝食' },
-  { value: 'lunch', label: '昼食' },
-  { value: 'dinner', label: '夕食' },
-  { value: 'snack', label: '間食' },
+  { value: 'lunch',     label: '昼食' },
+  { value: 'dinner',    label: '夕食' },
+  { value: 'snack',     label: '間食' },
 ]
 
 export default function PhotoUpload({ onSave }: PhotoUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const [preview, setPreview] = useState<string | null>(null)
-  const [imageBase64, setImageBase64] = useState<string | null>(null)
-  const [mimeType, setMimeType] = useState<string>('')
-  const [analyzing, setAnalyzing] = useState(false)
-  const [analyzed, setAnalyzed] = useState<AnalyzeMealResponse | null>(null)
-  const [mealType, setMealType] = useState<MealType>('lunch')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [preview, setPreview]           = useState<string | null>(null)
+  const [imageBase64, setImageBase64]   = useState<string | null>(null)
+  const [mimeType, setMimeType]         = useState<string>('')
+  const [analyzing, setAnalyzing]       = useState(false)
+  const [analyzed, setAnalyzed]         = useState<AnalyzeMealResponse | null>(null)
+  const [mealType, setMealType]         = useState<MealType>('lunch')
+  const [saving, setSaving]             = useState(false)
+  const [error, setError]               = useState<string | null>(null)
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-
     setMimeType(file.type)
     setAnalyzed(null)
     setError(null)
-
     const reader = new FileReader()
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string
       setPreview(dataUrl)
-      // base64部分だけ取り出す
-      const base64 = dataUrl.split(',')[1]
-      setImageBase64(base64)
+      setImageBase64(dataUrl.split(',')[1])
     }
     reader.readAsDataURL(file)
   }
@@ -84,7 +81,6 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
         imageBase64: imageBase64 ?? undefined,
         mimeType,
       })
-      // リセット
       setPreview(null)
       setImageBase64(null)
       setAnalyzed(null)
@@ -119,14 +115,16 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
       {!preview ? (
         <button
           onClick={() => inputRef.current?.click()}
-          className="w-full h-40 border-2 border-dashed border-rose-200 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-rose-400 hover:text-rose-400 transition-colors"
+          className="w-full h-44 border-2 border-dashed border-rose-200 rounded-2xl flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-rose-400 hover:text-rose-400 hover:bg-rose-50/50 transition-all"
         >
-          <span className="text-4xl">📷</span>
-          <span className="text-sm">タップして写真を選択</span>
+          <div className="w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center">
+            <Camera size={26} className="text-rose-300" strokeWidth={1.5} />
+          </div>
+          <span className="text-sm font-medium">タップして写真を選択</span>
         </button>
       ) : (
         <div className="relative">
-          <img src={preview} alt="プレビュー" className="w-full h-48 object-cover rounded-xl" />
+          <img src={preview} alt="プレビュー" className="w-full h-52 object-cover rounded-2xl" />
           <button
             onClick={() => {
               setPreview(null)
@@ -134,9 +132,9 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
               setAnalyzed(null)
               if (inputRef.current) inputRef.current.value = ''
             }}
-            className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm"
+            className="absolute top-2 right-2 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70 transition-colors"
           >
-            ✕
+            <X size={14} />
           </button>
         </div>
       )}
@@ -154,18 +152,21 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
 
       {/* 解析結果 */}
       {analyzed && (
-        <div className="bg-rose-50 rounded-xl p-3 space-y-1">
+        <div className="bg-rose-50 rounded-2xl p-4 space-y-1">
           <p className="text-2xl font-bold text-rose-500 text-center">
-            {analyzed.calories} kcal
+            {analyzed.calories.toLocaleString()} <span className="text-base font-normal">kcal</span>
           </p>
-          <p className="text-sm text-gray-600 text-center">{analyzed.note}</p>
+          <p className="text-sm text-gray-500 text-center">{analyzed.note}</p>
         </div>
       )}
 
       {/* ボタン */}
       {preview && !analyzed && (
         <Button className="w-full" onClick={handleAnalyze} loading={analyzing}>
-          カロリーを解析する
+          {analyzing
+            ? <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" />解析中...</span>
+            : 'カロリーを解析する'
+          }
         </Button>
       )}
       {analyzed && (
