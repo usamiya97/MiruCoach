@@ -1,5 +1,3 @@
-import { Leaf } from 'lucide-react'
-
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#faf7f5]">
@@ -12,11 +10,11 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
           {/* ロゴ */}
           <div className="relative flex flex-col items-center gap-3">
-            <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-              <Leaf size={30} className="text-rose-400" strokeWidth={1.8} />
-            </div>
+            <img src="/logo.svg" alt="mirucoach" className="w-16 h-16 rounded-2xl shadow-lg" />
             <div className="text-center">
-              <h1 className="text-white text-xl font-bold">ミルコーチ</h1>
+              <h1 className="text-white text-xl font-black tracking-tight">
+                miru<span className="text-white/80">coach</span>
+              </h1>
               <p className="text-white/70 text-xs mt-0.5">あなた専属のダイエットコーチ</p>
             </div>
           </div>

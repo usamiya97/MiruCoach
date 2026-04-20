@@ -98,11 +98,11 @@ export default async function RootPage() {
       {/* ── ナビゲーション ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/80">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-pink-400 rounded-lg flex items-center justify-center text-sm shadow-sm shadow-rose-200">
-              🌿
-            </div>
-            <span className="font-bold text-gray-900 text-lg">ミルコーチ</span>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.svg" alt="mirucoach" className="w-9 h-9 rounded-xl shadow-md shadow-rose-200/60" />
+            <span className="font-black text-gray-900 text-lg tracking-tight">
+              miru<span className="text-rose-500">coach</span>
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Link href="/login"
@@ -126,7 +126,7 @@ export default async function RootPage() {
           {/* テキスト */}
           <div className="flex-1">
             <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full mb-6 font-medium border border-white/20">
-              ✨ AIパーソナルコーチ × カロリー管理
+              AIパーソナルコーチ × カロリー管理
             </span>
             <h1 className="text-4xl lg:text-5xl font-bold text-white leading-tight mb-5">
               我慢じゃなく、<br />仕組みで痩せる
@@ -317,9 +317,11 @@ export default async function RootPage() {
       {/* ── フッター ── */}
       <footer className="bg-gray-900 py-10">
         <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🌿</span>
-            <span className="text-white font-bold">ミルコーチ</span>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.svg" alt="mirucoach" className="w-8 h-8 rounded-lg" />
+            <span className="font-black text-white text-base tracking-tight">
+              miru<span className="text-rose-400">coach</span>
+            </span>
           </div>
           <div className="flex gap-6 text-xs text-gray-500">
             <a href="#" className="hover:text-gray-300 transition-colors">利用規約</a>

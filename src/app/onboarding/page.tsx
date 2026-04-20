@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { calcTargetCalories } from '@/lib/calories'
-import { Leaf } from 'lucide-react'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -100,9 +99,7 @@ export default function OnboardingPage() {
 
         {/* ヘッダー */}
         <div className="text-center space-y-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center mx-auto shadow-md shadow-rose-200">
-            <Leaf size={26} className="text-white" strokeWidth={1.8} />
-          </div>
+          <img src="/logo.svg" alt="mirucoach" className="w-14 h-14 rounded-2xl mx-auto shadow-md shadow-rose-200" />
           <h1 className="text-xl font-bold text-gray-900">はじめに教えてください</h1>
           <p className="text-xs text-gray-400">
             あなたに合った目標カロリーを自動で計算します
