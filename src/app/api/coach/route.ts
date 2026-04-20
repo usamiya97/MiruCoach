@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic } from '@/lib/anthropic'
+import { getAnthropic } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
 import type { CoachRequest } from '@/types'
 
@@ -91,7 +91,7 @@ ${weightSummary || 'データなし'}`
     })
 
     // Claude API 呼び出し
-    const claudeResponse = await anthropic.messages.create({
+    const claudeResponse = await getAnthropic().messages.create({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 300,
       system: systemPrompt,

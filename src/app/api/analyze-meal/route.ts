@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { openai } from '@/lib/openai'
+import { getOpenAI } from '@/lib/openai'
 import { createClient } from '@/lib/supabase/server'
 import type { AnalyzeMealRequest, AnalyzeMealResponse } from '@/types'
 
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     const body: AnalyzeMealRequest = await request.json()
     const { imageBase64, mimeType } = body
 
-    const response = await openai.chat.completions.create({
+    const response = await getOpenAI().chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
