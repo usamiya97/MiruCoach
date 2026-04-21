@@ -1,17 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Camera, Sparkles, TrendingUp, type LucideIcon } from 'lucide-react'
 
 // ── 小コンポーネント ──────────────────────────────────
 
-function FeatureCard({ icon: Icon, title, description }: {
-  icon: LucideIcon; title: string; description: string
+function FeatureCard({ icon, title, description }: {
+  icon: string; title: string; description: string
 }) {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="w-12 h-12 bg-linear-to-br from-rose-500 to-pink-400 rounded-xl flex items-center justify-center mb-4 shadow-sm shadow-rose-200">
-        <Icon size={22} className="text-white" strokeWidth={1.8} />
+      <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-2xl mb-4">
+        {icon}
       </div>
       <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
@@ -107,11 +106,11 @@ export default async function RootPage() {
           </div>
           <div className="flex items-center gap-2">
             <Link href="/login"
-              className="text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-2">
+              className="hidden sm:block text-sm text-gray-500 hover:text-gray-900 transition-colors px-3 py-2">
               ログイン
             </Link>
             <Link href="/signup"
-              className="text-sm bg-linear-to-r from-rose-500 to-pink-400 text-white px-5 py-2 rounded-full font-medium hover:opacity-90 transition-all shadow-sm shadow-rose-200">
+              className="text-xs sm:text-sm bg-linear-to-r from-rose-500 to-pink-400 text-white px-4 sm:px-5 py-2 rounded-full font-medium hover:opacity-90 transition-all shadow-sm shadow-rose-200 whitespace-nowrap">
               無料で始める
             </Link>
           </div>
@@ -184,17 +183,17 @@ export default async function RootPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-4">
             <FeatureCard
-              icon={Camera}
+              icon="📷"
               title="写真1枚でカロリー記録"
               description="食事を撮るだけでAI（GPT-4o）が自動解析。カロリーと内訳を瞬時に記録。手入力にも対応。"
             />
             <FeatureCard
-              icon={Sparkles}
+              icon="🌿"
               title="AIコーチとの毎日の会話"
               description="食事・体重データをもとに専属コーチが返答。サボった日も責めず、具体的なアドバイスを届けます。"
             />
             <FeatureCard
-              icon={TrendingUp}
+              icon="📊"
               title="体重推移をグラフで可視化"
               description="30日間の体重変化をグラフで確認。過去の食事記録も日付をさかのぼって見返せます。"
             />
