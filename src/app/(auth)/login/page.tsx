@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 type Step = 'email' | 'otp'
@@ -49,6 +50,10 @@ export default function LoginPage() {
 
   return (
     <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+      <Link href="/" className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors w-fit">
+        <ChevronLeft size={14} />
+        トップに戻る
+      </Link>
       <div className="text-center">
         <h2 className="text-lg font-bold text-gray-900">ログイン</h2>
         <p className="text-xs text-gray-400 mt-1">
