@@ -132,7 +132,7 @@ export default function MealPage() {
   return (
     <div className="min-h-screen max-w-xl lg:max-w-3xl mx-auto">
       {/* ヘッダー */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-8">
+      <div className="relative overflow-hidden bg-linear-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-8">
         <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
         <h1 className="relative text-white text-xl font-bold">食事・体重を記録</h1>
         <p className="relative text-white/70 text-sm mt-0.5">今日も記録しよう</p>
@@ -151,7 +151,7 @@ export default function MealPage() {
               onClick={() => { setTab(key); setError(null) }}
               className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                 tab === key
-                  ? 'bg-gradient-to-r from-rose-500 to-pink-400 text-white shadow-sm'
+                  ? 'bg-linear-to-r from-rose-500 to-pink-400 text-white shadow-sm'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -237,7 +237,7 @@ export default function MealPage() {
               <button
                 type="submit"
                 disabled={manualSaving}
-                className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
+                className="w-full py-3 bg-linear-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
               >
                 {manualSaving ? '記録中...' : '記録する'}
               </button>
@@ -267,7 +267,7 @@ export default function MealPage() {
               <button
                 type="submit"
                 disabled={weightSaving}
-                className="w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
+                className="w-full py-3 bg-linear-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-all shadow-sm shadow-rose-200"
               >
                 {weightSaving ? '記録中...' : '記録する'}
               </button>

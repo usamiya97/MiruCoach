@@ -19,7 +19,7 @@ export default function ChatMessage({ message, coachName }: ChatMessageProps) {
       <div
         className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
           isUser
-            ? 'bg-gradient-to-br from-rose-500 to-pink-400 text-white rounded-tr-sm shadow-sm shadow-rose-200'
+            ? 'bg-linear-to-br from-rose-500 to-pink-400 text-white rounded-tr-sm shadow-sm shadow-rose-200'
             : 'bg-white text-gray-800 shadow-sm rounded-tl-sm'
         }`}
       >

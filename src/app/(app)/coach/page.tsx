@@ -125,7 +125,7 @@ export default function CoachPage() {
             '体重の推移に基づく具体的なアドバイス',
           ].map((item) => (
             <li key={item} className="flex items-center gap-3">
-              <span className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+              <span className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
                 <Check size={11} className="text-rose-500" strokeWidth={3} />
               </span>
               {item}
@@ -135,7 +135,7 @@ export default function CoachPage() {
         <div className="w-full max-w-xs space-y-3">
           <Link
             href="/api/stripe/checkout"
-            className="block w-full py-3 bg-gradient-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold text-center hover:opacity-90 transition-all shadow-sm shadow-rose-200"
+            className="block w-full py-3 bg-linear-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold text-center hover:opacity-90 transition-all shadow-sm shadow-rose-200"
           >
             月額980円で始める
           </Link>
