@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { Leaf, Check, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
+import Image from 'next/image'
 import ChatMessage from '@/components/coach/ChatMessage'
 import ChatInput from '@/components/coach/ChatInput'
 import type { CoachMessage } from '@/types'
@@ -15,6 +16,7 @@ export default function CoachPage() {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const isInitialLoad = useRef(true)
   const supabase = createClient()
 
   const fetchData = useCallback(async () => {
@@ -44,7 +46,12 @@ export default function CoachPage() {
   }, [fetchData])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    if (isInitialLoad.current) {
+      bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+      isInitialLoad.current = false
+    } else {
+      bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
   }, [messages])
 
   async function handleSend(text: string) {
@@ -100,8 +107,8 @@ export default function CoachPage() {
   if (!isPremium) {
     return (
       <div className="max-w-xl lg:max-w-3xl mx-auto px-4 py-6 flex flex-col items-center justify-center min-h-[80vh] text-center space-y-6">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center shadow-lg shadow-rose-200">
-          <Leaf size={36} className="text-white" strokeWidth={1.5} />
+        <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-lg shadow-rose-200">
+          <Image src="/logo.svg" alt={coachName} width={80} height={80} />
         </div>
         <div className="space-y-2">
           <h1 className="text-xl font-bold text-gray-900">AIコーチ「{coachName}」</h1>
@@ -142,8 +149,8 @@ export default function CoachPage() {
     <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100vh-64px)]">
       {/* ヘッダー */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center shadow-sm">
-          <Leaf size={16} className="text-white" strokeWidth={2} />
+        <div className="w-9 h-9 rounded-full overflow-hidden shadow-sm">
+          <Image src="/logo.svg" alt={coachName} width={36} height={36} />
         </div>
         <div>
           <p className="text-sm font-semibold text-gray-900">{coachName}</p>
@@ -155,8 +162,8 @@ export default function CoachPage() {
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50">
         {messages.length === 0 && (
           <div className="text-center py-12 space-y-3">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center mx-auto shadow-md shadow-rose-200">
-              <Leaf size={28} className="text-white" strokeWidth={1.5} />
+            <div className="w-16 h-16 rounded-2xl overflow-hidden mx-auto shadow-md shadow-rose-200">
+              <Image src="/logo.svg" alt={coachName} width={64} height={64} />
             </div>
             <div className="space-y-1">
               <p className="text-sm font-semibold text-gray-700">こんにちは！{coachName}です。</p>
@@ -169,8 +176,8 @@ export default function CoachPage() {
         ))}
         {sending && (
           <div className="flex gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center flex-shrink-0">
-              <Leaf size={14} className="text-white" strokeWidth={2} />
+            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0">
+              <Image src="/logo.svg" alt={coachName} width={32} height={32} />
             </div>
             <div className="bg-white shadow-sm rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
               <Loader2 size={14} className="text-rose-300 animate-spin" />

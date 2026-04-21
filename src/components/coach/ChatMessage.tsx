@@ -1,4 +1,4 @@
-import { Leaf } from 'lucide-react'
+import Image from 'next/image'
 import type { CoachMessage } from '@/types'
 
 interface ChatMessageProps {
@@ -12,8 +12,8 @@ export default function ChatMessage({ message, coachName }: ChatMessageProps) {
   return (
     <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-rose-400 to-pink-300 flex items-center justify-center flex-shrink-0 shadow-sm">
-          <Leaf size={14} className="text-white" strokeWidth={2} />
+        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm">
+          <Image src="/logo.svg" alt={coachName} width={32} height={32} />
         </div>
       )}
       <div
