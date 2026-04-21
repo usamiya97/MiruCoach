@@ -23,7 +23,7 @@ function Step({ number, title, description }: {
 }) {
   return (
     <div className="flex gap-4 items-start">
-      <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-400 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm shadow-rose-200">
+      <div className="w-10 h-10 bg-linear-to-br from-rose-500 to-pink-400 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0 shadow-sm shadow-rose-200">
         {number}
       </div>
       <div className="pt-1.5">
@@ -38,7 +38,7 @@ function PhoneMockup() {
   return (
     <div className="w-56 bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border-[6px] border-white/60 rotate-2">
       {/* アプリヘッダー */}
-      <div className="bg-gradient-to-br from-rose-500 to-pink-400 px-4 pt-5 pb-10">
+      <div className="bg-linear-to-br from-rose-500 to-pink-400 px-4 pt-5 pb-10">
         <p className="text-white/70 text-[10px]">おはようございます 🌅</p>
         <p className="text-white font-bold text-xs mt-0.5">今日も一緒に頑張ろう</p>
         {/* ミニカロリーリング */}
@@ -75,7 +75,7 @@ function PhoneMockup() {
           ))}
         </div>
         <div className="bg-rose-500 rounded-xl p-2.5 flex items-start gap-2">
-          <span className="text-base flex-shrink-0">🌿</span>
+          <span className="text-base shrink-0">🌿</span>
           <p className="text-white text-[9px] leading-relaxed">
             昨日より300kcal少ないです！<br />夕食は600kcal以内を目標に 💪
           </p>
@@ -110,7 +110,7 @@ export default async function RootPage() {
               ログイン
             </Link>
             <Link href="/signup"
-              className="text-sm bg-gradient-to-r from-rose-500 to-pink-400 text-white px-5 py-2 rounded-full font-medium hover:opacity-90 transition-all shadow-sm shadow-rose-200">
+              className="text-sm bg-linear-to-r from-rose-500 to-pink-400 text-white px-5 py-2 rounded-full font-medium hover:opacity-90 transition-all shadow-sm shadow-rose-200">
               無料で始める
             </Link>
           </div>
@@ -118,8 +118,8 @@ export default async function RootPage() {
       </nav>
 
       {/* ── ヒーロー ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 pt-36 pb-28">
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white/10 rounded-full -translate-y-40 translate-x-40" />
+      <section className="relative overflow-hidden bg-linear-to-br from-rose-500 via-rose-400 to-pink-300 pt-36 pb-28">
+        <div className="absolute top-0 right-0 w-125 h-125 bg-white/10 rounded-full -translate-y-40 translate-x-40" />
         <div className="absolute bottom-0 left-0 w-72 h-72 bg-white/10 rounded-full translate-y-24 -translate-x-24" />
 
         <div className="relative max-w-5xl mx-auto px-6 flex items-center gap-16">
@@ -150,7 +150,7 @@ export default async function RootPage() {
           </div>
 
           {/* フォンモックアップ */}
-          <div className="hidden lg:flex flex-shrink-0 items-center justify-center pr-8">
+          <div className="hidden lg:flex shrink-0 items-center justify-center pr-8">
             <PhoneMockup />
           </div>
         </div>
@@ -220,7 +220,7 @@ export default async function RootPage() {
                 description="データに基づいた具体的なアドバイスが届きます。サボった日も優しく寄り添います。" />
             </div>
           </div>
-          <div className="flex-shrink-0 flex justify-center lg:justify-end">
+          <div className="shrink-0 flex justify-center lg:justify-end">
             <div className="-rotate-2">
               <PhoneMockup />
             </div>
@@ -252,7 +252,7 @@ export default async function RootPage() {
                 {['写真でカロリー自動記録', '手入力でカロリー記録', '体重記録・グラフ表示',
                   '目標カロリー設定', '過去の記録をさかのぼる'].map((f) => (
                   <li key={f} className="flex items-center gap-2.5">
-                    <span className="w-4 h-4 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                    <span className="w-4 h-4 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-[10px] shrink-0">✓</span>
                     {f}
                   </li>
                 ))}
@@ -264,7 +264,7 @@ export default async function RootPage() {
             </div>
 
             {/* Premium */}
-            <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 to-pink-400 rounded-2xl p-8 flex flex-col">
+            <div className="relative overflow-hidden bg-linear-to-br from-rose-500 to-pink-400 rounded-2xl p-8 flex flex-col">
               <div className="absolute top-0 right-0 w-36 h-36 bg-white/10 rounded-full -translate-y-10 translate-x-10" />
               <div className="relative flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -280,7 +280,7 @@ export default async function RootPage() {
                   {['FREEの全機能', 'AIコーチとの毎日の会話', '食事・体重データを踏まえた提案',
                     'サボった日も責めないコーチング', 'コーチの名前・トーン設定'].map((f) => (
                     <li key={f} className="flex items-center gap-2.5">
-                      <span className="w-4 h-4 bg-white/20 text-white rounded-full flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                      <span className="w-4 h-4 bg-white/20 text-white rounded-full flex items-center justify-center text-[10px] shrink-0">✓</span>
                       {f}
                     </li>
                   ))}
@@ -296,7 +296,7 @@ export default async function RootPage() {
       </section>
 
       {/* ── 最終 CTA ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 py-24">
+      <section className="relative overflow-hidden bg-linear-to-br from-rose-500 via-rose-400 to-pink-300 py-24">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-16 translate-x-16" />
         <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-12 -translate-x-12" />
         <div className="relative max-w-5xl mx-auto px-6 text-center">
