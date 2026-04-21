@@ -12,8 +12,8 @@ export default function ChatMessage({ message, coachName }: ChatMessageProps) {
   return (
     <div className={`flex gap-2 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 shadow-sm">
-          <Image src="/logo.svg" alt={coachName} width={32} height={32} />
+        <div className="w-8 h-8 shrink-0">
+          <Image src="/logo.svg" alt={coachName} width={32} height={32} className="w-full h-full object-contain" />
         </div>
       )}
       <div

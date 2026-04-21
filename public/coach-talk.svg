@@ -1,0 +1,44 @@
+<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Speech bubble -->
+  <rect x="30" y="8" width="72" height="38" rx="12" fill="#FFF0F3" stroke="#F9A8B8" stroke-width="1.5"/>
+  <polygon points="48,46 40,58 58,46" fill="#FFF0F3" stroke="#F9A8B8" stroke-width="1.5" stroke-linejoin="round"/>
+  <polygon points="48,46 40,58 58,46" fill="#FFF0F3"/>
+
+  <!-- Dots in bubble -->
+  <circle cx="52" cy="27" r="4" fill="#F43F5E"/>
+  <circle cx="66" cy="27" r="4" fill="#FB7185"/>
+  <circle cx="80" cy="27" r="4" fill="#FDA4AF"/>
+
+  <!-- Robot body -->
+  <rect x="32" y="62" width="56" height="42" rx="14" fill="#FBD0DA"/>
+  <!-- Body highlight -->
+  <rect x="38" y="68" width="44" height="30" rx="10" fill="#FDE8EE"/>
+
+  <!-- Robot head -->
+  <rect x="34" y="38" width="52" height="36" rx="14" fill="#F43F5E"/>
+  <!-- Head highlight -->
+  <rect x="40" y="44" width="40" height="24" rx="10" fill="#FB7185" opacity="0.4"/>
+
+  <!-- Eyes -->
+  <circle cx="52" cy="58" r="7" fill="white"/>
+  <circle cx="68" cy="58" r="7" fill="white"/>
+  <circle cx="53" cy="59" r="4" fill="#9F1239"/>
+  <circle cx="69" cy="59" r="4" fill="#9F1239"/>
+  <circle cx="54.5" cy="57.5" r="1.5" fill="white"/>
+  <circle cx="70.5" cy="57.5" r="1.5" fill="white"/>
+
+  <!-- Smile -->
+  <path d="M54 68 Q60 73 66 68" stroke="#9F1239" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Ears / antenna -->
+  <circle cx="34" cy="50" r="5" fill="#FB7185"/>
+  <circle cx="86" cy="50" r="5" fill="#FB7185"/>
+
+  <!-- Arms -->
+  <rect x="14" y="68" width="20" height="12" rx="6" fill="#FBD0DA"/>
+  <rect x="86" y="68" width="20" height="12" rx="6" fill="#FBD0DA"/>
+
+  <!-- Whistle / accessory -->
+  <circle cx="60" cy="88" r="6" fill="#F43F5E"/>
+  <rect x="57" y="85" width="6" height="4" rx="2" fill="#9F1239"/>
+</svg>

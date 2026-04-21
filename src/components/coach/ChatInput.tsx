@@ -38,7 +38,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
       <button
         type="submit"
         disabled={!input.trim() || sending || disabled}
-        className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-400 text-white rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all shadow-sm shadow-rose-200 flex-shrink-0"
+        className="w-10 h-10 bg-linear-to-br from-rose-500 to-pink-400 text-white rounded-full flex items-center justify-center hover:opacity-90 disabled:opacity-40 transition-all shadow-sm shadow-rose-200 shrink-0"
       >
         <ArrowUp size={18} strokeWidth={2.5} />
       </button>
