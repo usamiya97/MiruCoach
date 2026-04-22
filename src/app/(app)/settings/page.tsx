@@ -11,10 +11,12 @@ export default function SettingsPage() {
 
   const [height, setHeight]         = useState('')
   const [age, setAge]               = useState('')
-  const [weight, setWeight]         = useState('')  // 最新体重（body_logs から）
+  const [weight, setWeight]         = useState('')
   const [goalWeight, setGoalWeight] = useState('')
   const [targetCalories, setTargetCalories] = useState('')
-  const [useManual, setUseManual]   = useState(false)  // 手動上書きモード
+  const [useManual, setUseManual]   = useState(false)
+  const [coachName, setCoachName]   = useState('ミル')
+  const [coachTone, setCoachTone]   = useState<'gentle' | 'logical'>('gentle')
   const [loading, setLoading]       = useState(true)
   const [saving, setSaving]         = useState(false)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
@@ -26,7 +28,7 @@ export default function SettingsPage() {
 
     const [profileRes, latestWeightRes] = await Promise.all([
       supabase.from('users')
-        .select('height, goal_weight, age, target_calories')
+        .select('height, goal_weight, age, target_calories, coach_name, coach_tone')
         .eq('id', user.id)
         .single(),
       supabase.from('body_logs')
@@ -43,6 +45,8 @@ export default function SettingsPage() {
       setGoalWeight(p.goal_weight?.toString() ?? '')
       setAge(p.age?.toString() ?? '')
       setTargetCalories(p.target_calories?.toString() ?? '1800')
+      setCoachName(p.coach_name ?? 'ミル')
+      setCoachTone((p.coach_tone as 'gentle' | 'logical') ?? 'gentle')
     }
     if (latestWeightRes.data) {
       setWeight(latestWeightRes.data.weight.toString())
@@ -85,6 +89,8 @@ export default function SettingsPage() {
         goal_weight: goalWeight ? parseFloat(goalWeight) : null,
         age: age ? parseInt(age) : null,
         target_calories: parseInt(targetCalories),
+        coach_name: coachName.trim() || 'ミル',
+        coach_tone: coachTone,
       })
       if (upsertError) throw upsertError
 
@@ -206,6 +212,48 @@ export default function SettingsPage() {
           )}
         </Card>
 
+        {/* コーチ設定 */}
+        <Card className="space-y-4">
+          <p className="text-sm font-semibold text-gray-800">コーチの設定</p>
+
+          <Field label="コーチの名前" unit="">
+            <input
+              type="text"
+              maxLength={10}
+              value={coachName}
+              onChange={(e) => setCoachName(e.target.value)}
+              className={inputClass}
+              placeholder="ミル"
+            />
+          </Field>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">コーチの性格</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'gentle', label: 'やさしい', desc: '褒めながら寄り添う' },
+                { value: 'logical', label: '論理的', desc: 'データで明確に導く' },
+              ] as const).map((tone) => (
+                <button
+                  key={tone.value}
+                  type="button"
+                  onClick={() => setCoachTone(tone.value)}
+                  className={`p-3 rounded-xl border-2 text-left transition-all ${
+                    coachTone === tone.value
+                      ? 'border-rose-400 bg-rose-50'
+                      : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <p className={`text-sm font-semibold ${coachTone === tone.value ? 'text-rose-500' : 'text-gray-700'}`}>
+                    {tone.label}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">{tone.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </Card>
+
         {successMsg && (
           <p className="text-sm text-green-600 bg-green-50 rounded-lg px-3 py-2 text-center">
             {successMsg}
@@ -229,7 +277,7 @@ export default function SettingsPage() {
 }
 
 const inputClass =
-  'w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400'
+  'w-full px-3 py-2 border border-gray-300 text-gray-900 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400'
 
 function Field({
   label,
