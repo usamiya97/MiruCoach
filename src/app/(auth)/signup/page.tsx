@@ -73,7 +73,7 @@ export default function SignupPage() {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent transition-all"
               placeholder="you@example.com"
             />
           </div>
@@ -123,7 +123,7 @@ export default function SignupPage() {
               autoComplete="one-time-code"
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-center tracking-[0.6em] text-lg font-bold transition-all"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-300 focus:border-transparent text-center tracking-[0.6em] text-lg font-bold transition-all"
               placeholder="00000000"
             />
           </div>
