@@ -146,7 +146,7 @@ export default function CoachPage() {
   }
 
   return (
-    <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100vh-64px)]">
+    <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100dvh-96px)]">
       {/* ヘッダー */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
         <div className="w-12 h-12">
