@@ -7,7 +7,6 @@ import Image from 'next/image'
 import ChatMessage from '@/components/coach/ChatMessage'
 import ChatInput from '@/components/coach/ChatInput'
 import type { CoachMessage } from '@/types'
-import Link from 'next/link'
 
 export default function CoachPage() {
   const [messages, setMessages] = useState<CoachMessage[]>([])
@@ -133,12 +132,12 @@ export default function CoachPage() {
           ))}
         </ul>
         <div className="w-full max-w-xs space-y-3">
-          <Link
+          <a
             href="/api/stripe/checkout"
             className="block w-full py-3 bg-linear-to-r from-rose-500 to-pink-400 text-white rounded-xl text-sm font-semibold text-center hover:opacity-90 transition-all shadow-sm shadow-rose-200"
           >
             月額980円で始める
-          </Link>
+          </a>
           <p className="text-xs text-gray-400">いつでもキャンセル可能</p>
         </div>
       </div>
