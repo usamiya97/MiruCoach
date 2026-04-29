@@ -117,10 +117,18 @@ export default async function DashboardPage({
             )}
           </div>
           {profile?.plan === 'premium' && (
-            <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/30 flex items-center gap-1">
-              <Sparkles size={11} strokeWidth={2} />
-              Premium
-            </span>
+            <div className="flex flex-col items-end gap-1.5">
+              <span className="bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full font-medium border border-white/30 flex items-center gap-1">
+                <Sparkles size={11} strokeWidth={2} />
+                Premium
+              </span>
+              <a
+                href="/api/stripe/portal"
+                className="text-white/60 text-xs hover:text-white/90 transition-colors"
+              >
+                プランを管理
+              </a>
+            </div>
           )}
         </div>
 

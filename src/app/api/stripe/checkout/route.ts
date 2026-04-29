@@ -27,7 +27,7 @@ export async function GET() {
         },
       ],
       metadata: { user_id: user.id },
-      success_url: `${origin}/dashboard?upgraded=1`,
+      success_url: `${origin}/api/stripe/verify-session?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/coach`,
     })
 
