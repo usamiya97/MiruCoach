@@ -1,16 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Camera, Sparkles, TrendingUp, type LucideIcon } from 'lucide-react'
 
 // ── 小コンポーネント ──────────────────────────────────
 
-function FeatureCard({ icon, title, description }: {
-  icon: string; title: string; description: string
+function FeatureCard({ icon: Icon, title, description }: {
+  icon: LucideIcon; title: string; description: string
 }) {
   return (
     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-      <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-2xl mb-4">
-        {icon}
+      <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center mb-4">
+        <Icon size={24} className="text-rose-500" strokeWidth={1.8} />
       </div>
       <h3 className="font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
@@ -183,17 +184,17 @@ export default async function RootPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-4">
             <FeatureCard
-              icon="📷"
+              icon={Camera}
               title="写真1枚でカロリー記録"
               description="食事を撮るだけでAI（GPT-4o）が自動解析。カロリーと内訳を瞬時に記録。手入力にも対応。"
             />
             <FeatureCard
-              icon="🌿"
+              icon={Sparkles}
               title="AIコーチとの毎日の会話"
               description="食事・体重データをもとに専属コーチが返答。サボった日も責めず、具体的なアドバイスを届けます。"
             />
             <FeatureCard
-              icon="📊"
+              icon={TrendingUp}
               title="体重推移をグラフで可視化"
               description="30日間の体重変化をグラフで確認。過去の食事記録も日付をさかのぼって見返せます。"
             />
