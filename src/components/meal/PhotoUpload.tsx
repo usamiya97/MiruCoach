@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { Camera, X, Loader2 } from 'lucide-react'
+import { Camera, X } from 'lucide-react'
 import type { MealType, AnalyzeMealResponse } from '@/types'
 import Button from '@/components/ui/Button'
 
@@ -163,15 +163,12 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
       {/* ボタン */}
       {preview && !analyzed && (
         <Button className="w-full" onClick={handleAnalyze} loading={analyzing}>
-          {analyzing
-            ? <span className="flex items-center justify-center gap-2"><Loader2 size={16} className="animate-spin" />解析中...</span>
-            : 'カロリーを解析する'
-          }
+          {analyzing ? '解析中...' : 'カロリーを解析する'}
         </Button>
       )}
       {analyzed && (
         <Button className="w-full" onClick={handleSave} loading={saving}>
-          記録する
+          {saving ? '記録中...' : '記録する'}
         </Button>
       )}
     </div>

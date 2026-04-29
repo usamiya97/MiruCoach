@@ -1,4 +1,5 @@
 import { ButtonHTMLAttributes } from 'react'
+import { Loader2 } from 'lucide-react'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
 
@@ -27,7 +28,14 @@ export default function Button({
       className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${variantClasses[variant]} ${className}`}
       {...props}
     >
-      {loading ? '処理中...' : children}
+      {loading ? (
+        <span className="flex items-center justify-center gap-2">
+          <Loader2 size={16} className="animate-spin" />
+          {children}
+        </span>
+      ) : (
+        children
+      )}
     </button>
   )
 }
