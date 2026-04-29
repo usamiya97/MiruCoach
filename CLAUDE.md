@@ -147,3 +147,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 - SNS連携
 - プッシュ通知
 - ネイティブアプリ化（MVP後に検討）
+
+## 回答スタイル
+
+- 結論ファースト
+- 指摘すべきことは素直に指摘
