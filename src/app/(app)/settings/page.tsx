@@ -2,12 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useUser } from '@/lib/user-context'
 import { calcTargetCalories } from '@/lib/calories'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 
 export default function SettingsPage() {
   const supabase = createClient()
+  const user = useUser()
 
   const [height, setHeight]         = useState('')
   const [age, setAge]               = useState('')
@@ -23,9 +25,6 @@ export default function SettingsPage() {
   const [error, setError]           = useState<string | null>(null)
 
   const fetchProfile = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const [profileRes, latestWeightRes] = await Promise.all([
       supabase.from('users')
         .select('height, goal_weight, age, target_calories, coach_name, coach_tone')
@@ -52,7 +51,7 @@ export default function SettingsPage() {
       setWeight(latestWeightRes.data.weight.toString())
     }
     setLoading(false)
-  }, [supabase])
+  }, [supabase, user.id])
 
   useEffect(() => { fetchProfile() }, [fetchProfile])
 
@@ -80,9 +79,6 @@ export default function SettingsPage() {
     setError(null)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
       const { error: upsertError } = await supabase.from('users').upsert({
         id: user.id,
         height: height ? parseFloat(height) : null,

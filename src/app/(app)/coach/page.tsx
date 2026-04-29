@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useUser } from '@/lib/user-context'
 import { Check, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import ChatMessage from '@/components/coach/ChatMessage'
@@ -17,11 +18,9 @@ export default function CoachPage() {
   const bottomRef = useRef<HTMLDivElement>(null)
   const isInitialLoad = useRef(true)
   const supabase = createClient()
+  const user = useUser()
 
   const fetchData = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     const [profileRes, historyRes] = await Promise.all([
       supabase.from('users').select('plan, coach_name').eq('id', user.id).single(),
       supabase
@@ -38,7 +37,7 @@ export default function CoachPage() {
     }
     setMessages(historyRes.data ?? [])
     setLoading(false)
-  }, [supabase])
+  }, [supabase, user.id])
 
   useEffect(() => {
     fetchData()
@@ -54,9 +53,6 @@ export default function CoachPage() {
   }, [messages])
 
   async function handleSend(text: string) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
     // 楽観的UI更新（ユーザーメッセージを即表示）
     const optimisticUserMsg: CoachMessage = {
       id: `tmp-${Date.now()}`,

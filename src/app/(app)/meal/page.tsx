@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useUser } from '@/lib/user-context'
 import { Camera, PenLine, Scale, Sunrise, Sun, Moon, Cookie } from 'lucide-react'
 import MealCard from '@/components/meal/MealCard'
 import PhotoUpload from '@/components/meal/PhotoUpload'
@@ -34,6 +35,7 @@ export default function MealPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const supabase = createClient()
+  const user = useUser()
 
   const fetchTodayMeals = useCallback(async () => {
     const todayStart = new Date()
@@ -58,8 +60,6 @@ export default function MealPage() {
     calories: number; note: string; meal_type: MealType; photo_url: string | null
     imageBase64?: string; mimeType?: string
   }) {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
     const { error } = await supabase.from('meal_logs').insert({
       user_id: user.id,
       calories: data.calories,
@@ -78,8 +78,6 @@ export default function MealPage() {
     setManualSaving(true)
     setError(null)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
       const { error } = await supabase.from('meal_logs').insert({
         user_id: user.id,
         calories: parseInt(manualCalories),
@@ -105,8 +103,6 @@ export default function MealPage() {
     setWeightSaving(true)
     setError(null)
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
       const { error } = await supabase.from('body_logs').insert({
         user_id: user.id, weight: parseFloat(weight), logged_at: new Date().toISOString(),
       })
