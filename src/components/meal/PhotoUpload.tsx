@@ -1,8 +1,9 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Camera, X } from 'lucide-react'
 import type { MealType, AnalyzeMealResponse } from '@/types'
+import type { AnalyzeMealUsage } from '@/lib/analyze-meal-limits'
 import Button from '@/components/ui/Button'
 
 interface PhotoUploadProps {
@@ -33,6 +34,20 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
   const [mealType, setMealType]         = useState<MealType>('lunch')
   const [saving, setSaving]             = useState(false)
   const [error, setError]               = useState<string | null>(null)
+  const [usage, setUsage]               = useState<AnalyzeMealUsage | null>(null)
+
+  const fetchUsage = useCallback(async () => {
+    try {
+      const res = await fetch('/api/analyze-meal/usage')
+      if (!res.ok) return
+      const data: AnalyzeMealUsage = await res.json()
+      setUsage(data)
+    } catch {
+      // 使用状況の取得失敗は致命的ではないので握りつぶす
+    }
+  }, [])
+
+  useEffect(() => { fetchUsage() }, [fetchUsage])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -59,9 +74,26 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ imageBase64, mimeType }),
       })
-      if (!res.ok) throw new Error('解析に失敗しました')
+      if (!res.ok) {
+        if (res.status === 429) {
+          const data = await res.json().catch(() => ({})) as { limit?: number; plan?: 'free' | 'premium' }
+          const planLabel = data.plan === 'premium' ? 'Premium' : '無料'
+          setError(`24時間あたりの解析回数（${planLabel}プラン: ${data.limit ?? ''}回）の上限に達しました。時間をおいて再度お試しください。`)
+          fetchUsage()
+        } else if (res.status === 413) {
+          setError('画像サイズが大きすぎます。別の写真を選択してください。')
+        } else if (res.status === 400) {
+          setError('画像の形式が対応していません（JPEG / PNG / WebP のみ）。')
+        } else if (res.status === 401) {
+          setError('ログインし直してから試してください。')
+        } else {
+          setError('カロリー解析に失敗しました。もう一度試してください。')
+        }
+        return
+      }
       const data: AnalyzeMealResponse = await res.json()
       setAnalyzed(data)
+      fetchUsage()
     } catch {
       setError('カロリー解析に失敗しました。もう一度試してください。')
     } finally {
@@ -92,6 +124,8 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
     }
   }
 
+  const reachedLimit = usage !== null && usage.remaining <= 0
+
   return (
     <div className="space-y-4">
       {/* 食事タイプ選択 */}
@@ -110,6 +144,25 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
           </button>
         ))}
       </div>
+
+      {/* 解析回数の使用状況 */}
+      {usage && (
+        <div
+          className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs ${
+            reachedLimit
+              ? 'bg-red-50 text-red-600'
+              : 'bg-gray-50 text-gray-600'
+          }`}
+        >
+          <span className="font-medium">
+            {usage.plan === 'premium' ? 'Premiumプラン' : '無料プラン'}
+            <span className="text-gray-400 ml-1">（24時間に{usage.limit}回まで）</span>
+          </span>
+          <span className="font-semibold tabular-nums">
+            残り {usage.remaining} / {usage.limit}回
+          </span>
+        </div>
+      )}
 
       {/* 写真選択エリア */}
       {!preview ? (
@@ -162,8 +215,17 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
 
       {/* ボタン */}
       {preview && !analyzed && (
-        <Button className="w-full" onClick={handleAnalyze} loading={analyzing}>
-          {analyzing ? '解析中...' : 'カロリーを解析する'}
+        <Button
+          className="w-full"
+          onClick={handleAnalyze}
+          loading={analyzing}
+          disabled={reachedLimit}
+        >
+          {analyzing
+            ? '解析中...'
+            : reachedLimit
+              ? '本日の上限に達しました'
+              : 'カロリーを解析する'}
         </Button>
       )}
       {analyzed && (
