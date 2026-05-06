@@ -7,25 +7,16 @@ import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
 import UpgradeWaiter from '@/components/ui/UpgradeWaiter'
 import MealCard from '@/components/meal/MealCard'
+import { getJstNow, jstDayRange } from '@/lib/datetime'
 import type { MealLog } from '@/types'
 
-function toDateStr(date: Date): string {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, '0'),
-    String(date.getDate()).padStart(2, '0'),
-  ].join('-')
-}
-
-function getGreeting(): string {
-  const hour = new Date().getHours()
+function getGreeting(hour: number): string {
   if (hour < 10) return 'おはようございます'
   if (hour < 17) return 'こんにちは'
   return 'おつかれさまです'
 }
 
-function GreetingIcon() {
-  const hour = new Date().getHours()
+function GreetingIcon({ hour }: { hour: number }) {
   if (hour < 10) return <Sunrise size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
   if (hour < 17) return <Sun     size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
   return               <Moon    size={20} className="text-white/80 inline-block ml-1.5 -translate-y-0.5" strokeWidth={1.8} />
@@ -41,12 +32,11 @@ export default async function DashboardPage({
   if (!user) redirect('/login')
 
   const { date: dateParam, upgraded: upgradedParam } = await searchParams
-  const todayStr = toDateStr(new Date())
+  const { dateStr: todayStr, hour: jstHour } = getJstNow()
   const targetDate = dateParam ?? todayStr
   const isToday = targetDate === todayStr
 
-  const dayStart = `${targetDate}T00:00:00`
-  const dayEnd   = `${targetDate}T23:59:59`
+  const { start: dayStart, end: dayEnd } = jstDayRange(targetDate)
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -110,7 +100,7 @@ export default async function DashboardPage({
               <>
                 <p className="text-white/70 text-sm">{dateLabel}</p>
                 <h1 className="text-white text-xl font-bold mt-0.5">
-                  {getGreeting()}<GreetingIcon />
+                  {getGreeting(jstHour)}<GreetingIcon hour={jstHour} />
                 </h1>
               </>
             ) : (
