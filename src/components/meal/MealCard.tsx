@@ -18,6 +18,30 @@ const mealTypeColor: Record<string, string> = {
   snack:     'bg-rose-50 text-rose-400',
 }
 
+// photo_url は本来 Supabase Storage のみが入る前提だが、
+// 万一不正な値が DB に入っても外部ドメインへリクエストが飛ばないよう許可ホストで弾く
+// （リファラ・IP 漏洩、追跡ピクセル化の防止）
+function isAllowedPhotoUrl(raw: string): boolean {
+  let parsed: URL
+  try {
+    parsed = new URL(raw)
+  } catch {
+    return false
+  }
+  if (parsed.protocol !== 'https:') return false
+
+  const host = parsed.host.toLowerCase()
+  if (host.endsWith('.supabase.co') || host.endsWith('.supabase.in')) return true
+
+  try {
+    const supaHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').host.toLowerCase()
+    if (supaHost && host === supaHost) return true
+  } catch {
+    // 環境変数が壊れていたら通常ホスト判定だけに頼る
+  }
+  return false
+}
+
 interface MealCardProps {
   meal: MealLog
   onDelete?: (id: string) => Promise<void>
@@ -40,14 +64,17 @@ export default function MealCard({ meal, onDelete }: MealCardProps) {
     setConfirming(false)
   }
 
+  const safePhotoUrl = meal.photo_url && isAllowedPhotoUrl(meal.photo_url) ? meal.photo_url : null
+
   return (
     <div className="py-3 border-b border-gray-100 last:border-0">
       <div className="flex items-center gap-3">
-        {meal.photo_url ? (
+        {safePhotoUrl ? (
           <img
-            src={meal.photo_url}
+            src={safePhotoUrl}
             alt="食事写真"
             className="w-12 h-12 rounded-xl object-cover flex-shrink-0"
+            referrerPolicy="no-referrer"
           />
         ) : (
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${mealTypeColor[meal.meal_type] ?? 'bg-gray-50 text-gray-400'}`}>
