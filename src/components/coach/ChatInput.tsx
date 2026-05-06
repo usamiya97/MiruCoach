@@ -34,7 +34,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         placeholder="メッセージを入力..."
         disabled={disabled || sending}
         maxLength={2000}
-        className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-900 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:opacity-50"
+        className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-900 rounded-full text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 disabled:opacity-50"
       />
       <button
         type="submit"
