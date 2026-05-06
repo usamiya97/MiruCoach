@@ -5,6 +5,7 @@ import { Leaf, Sparkles, UtensilsCrossed, Plus, Sunrise, Sun, Moon } from 'lucid
 import CalorieRing from '@/components/ui/CalorieRing'
 import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
+import UpgradeWaiter from '@/components/ui/UpgradeWaiter'
 import MealCard from '@/components/meal/MealCard'
 import type { MealLog } from '@/types'
 
@@ -33,13 +34,13 @@ function GreetingIcon() {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string }>
+  searchParams: Promise<{ date?: string; upgraded?: string }>
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { date: dateParam } = await searchParams
+  const { date: dateParam, upgraded: upgradedParam } = await searchParams
   const todayStr = toDateStr(new Date())
   const targetDate = dateParam ?? todayStr
   const isToday = targetDate === todayStr
@@ -89,8 +90,11 @@ export default async function DashboardPage({
     month: 'long', day: 'numeric', weekday: 'short',
   })
 
+  const isPremium = profile?.plan === 'premium'
+
   return (
     <div className="min-h-screen max-w-xl lg:max-w-3xl mx-auto">
+      {upgradedParam === '1' && <UpgradeWaiter isPremium={isPremium} />}
 
       {/* ── ヒーローセクション ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-rose-500 via-rose-400 to-pink-300 px-5 pt-14 pb-28">
