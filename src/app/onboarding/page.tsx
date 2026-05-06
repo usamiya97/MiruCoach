@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { calcTargetCalories } from '@/lib/calories'
+import type { Gender } from '@/types'
 
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const [gender, setGender]         = useState<Gender | ''>('')
   const [height, setHeight]         = useState('')
   const [age, setAge]               = useState('')
   const [weight, setWeight]         = useState('')
@@ -35,7 +37,7 @@ export default function OnboardingPage() {
 
   // 入力値が揃っていれば計算してプレビュー表示
   const allFilled =
-    height !== '' && age !== '' && weight !== '' && goalWeight !== ''
+    gender !== '' && height !== '' && age !== '' && weight !== '' && goalWeight !== ''
 
   const preview = allFilled
     ? calcTargetCalories({
@@ -43,6 +45,7 @@ export default function OnboardingPage() {
         weight: parseFloat(weight),
         goalWeight: parseFloat(goalWeight),
         age: parseInt(age),
+        gender: gender as Gender,
       })
     : null
 
@@ -59,6 +62,7 @@ export default function OnboardingPage() {
       // users テーブルに upsert（レコードがなければ作成）
       const { error: upsertError } = await supabase.from('users').upsert({
         id: user.id,
+        gender,
         height: parseFloat(height),
         goal_weight: parseFloat(goalWeight),
         age: parseInt(age),
@@ -107,6 +111,35 @@ export default function OnboardingPage() {
         </div>
 
         <form onSubmit={handleSave} className="space-y-4">
+
+          {/* 性別 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              性別
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'female', label: '女性', activeClass: 'border-rose-400 bg-rose-50 text-rose-500 font-semibold' },
+                { value: 'male',   label: '男性', activeClass: 'border-sky-400 bg-sky-50 text-sky-500 font-semibold' },
+              ] as const).map((g) => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => setGender(g.value)}
+                  className={`py-2 rounded-lg border text-sm transition-colors ${
+                    gender === g.value
+                      ? g.activeClass
+                      : 'border-gray-300 bg-white text-gray-600'
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">
+              基礎代謝の計算に使います
+            </p>
+          </div>
 
           {/* 身長 */}
           <div>

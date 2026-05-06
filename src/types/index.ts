@@ -2,6 +2,7 @@ export type Plan = 'free' | 'premium'
 export type CoachTone = 'gentle' | 'logical'
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack'
 export type MessageRole = 'user' | 'assistant'
+export type Gender = 'female' | 'male'
 
 export interface User {
   id: string
@@ -9,6 +10,7 @@ export interface User {
   stripe_customer_id: string | null
   coach_name: string
   coach_tone: CoachTone
+  gender: Gender | null
   height: number | null
   goal_weight: number | null
   age: number | null

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     // プラン確認
     const { data: profile } = await supabase
       .from('users')
-      .select('plan, coach_name, coach_tone, target_calories, goal_weight, age')
+      .select('plan, coach_name, coach_tone, target_calories, goal_weight, age, gender')
       .eq('id', user.id)
       .single()
 
@@ -124,11 +124,14 @@ export async function POST(request: Request) {
     const isLogical = profile.coach_tone === 'logical'
     const targetCal = profile.target_calories ?? 1800
     const goalWeight = profile.goal_weight ? `${profile.goal_weight}kg` : '未設定'
+    const genderLabel =
+      profile.gender === 'male' ? '男性' :
+      profile.gender === 'female' ? '女性' : '未設定'
 
     const systemPrompt = `あなたは「${coachName}」という名前の、専属パーソナルダイエットコーチです。
 
 ## あなたの役割
-30〜40代のフルタイム勤務女性が「我慢せず、仕組みで痩せる」を実現できるよう、毎日のデータをもとに具体的・継続的にサポートする。
+仕事や家庭で忙しい大人が「我慢せず、仕組みで痩せる」を実現できるよう、毎日のデータをもとに具体的・継続的にサポートする。性別や年齢に関係なく、その人の生活リズムに合わせて伴走する。
 
 ## コーチとしての性格・口調
 ${isLogical
@@ -146,6 +149,7 @@ ${isLogical
 ## データの読み方と使い方
 - 目標カロリー: ${targetCal}kcal/日
 - 目標体重: ${goalWeight}
+- 性別: ${genderLabel}（必要なときだけ参考にする。性別を理由にした決めつけはしない）
 - カロリーが目標を超えた日は「次の食事での調整」を提案（翌日まで引っ張らない）
 - 体重が増えていても食事記録が良ければ「行動を褒める」（体重だけで評価しない）
 - 3日以上記録がない場合は「記録再開を優しく促す」

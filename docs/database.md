@@ -29,6 +29,7 @@ Supabase の `auth.users` を拡張したテーブル。
 | `stripe_customer_id` | text | Stripe 顧客 ID（課金後に設定） |
 | `coach_name` | text | AIコーチの名前。デフォルト `'ミル'` |
 | `coach_tone` | text | `'gentle'`（共感）または `'logical'`（データ重視） |
+| `gender` | text | `'female'` または `'male'`（null 可）。基礎代謝計算で使う |
 | `height` | numeric | 身長（cm）。オンボーディングで設定 |
 | `goal_weight` | numeric | 目標体重（kg） |
 | `age` | integer | 年齢 |
@@ -78,6 +79,7 @@ create table public.users (
   stripe_customer_id text,
   coach_name text not null default 'ミル',
   coach_tone text not null default 'gentle' check (coach_tone in ('gentle', 'logical')),
+  gender text check (gender in ('female', 'male')),
   height numeric,
   goal_weight numeric,
   age integer,
@@ -125,6 +127,15 @@ $$ language plpgsql security definer;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+```
+
+### 既存環境向けマイグレーション（gender カラム追加）
+
+`gender` カラムを後から追加する場合：
+
+```sql
+alter table public.users
+  add column gender text check (gender in ('female', 'male'));
 ```
 
 ---

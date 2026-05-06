@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/lib/user-context'
 import { calcTargetCalories } from '@/lib/calories'
+import type { Gender } from '@/types'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 
@@ -11,6 +12,7 @@ export default function SettingsPage() {
   const supabase = createClient()
   const user = useUser()
 
+  const [gender, setGender]         = useState<Gender | ''>('')
   const [height, setHeight]         = useState('')
   const [age, setAge]               = useState('')
   const [weight, setWeight]         = useState('')
@@ -27,7 +29,7 @@ export default function SettingsPage() {
   const fetchProfile = useCallback(async () => {
     const [profileRes, latestWeightRes] = await Promise.all([
       supabase.from('users')
-        .select('height, goal_weight, age, target_calories, coach_name, coach_tone')
+        .select('height, goal_weight, age, target_calories, coach_name, coach_tone, gender')
         .eq('id', user.id)
         .single(),
       supabase.from('body_logs')
@@ -40,6 +42,7 @@ export default function SettingsPage() {
 
     const p = profileRes.data
     if (p) {
+      setGender((p.gender as Gender | null) ?? '')
       setHeight(p.height?.toString() ?? '')
       setGoalWeight(p.goal_weight?.toString() ?? '')
       setAge(p.age?.toString() ?? '')
@@ -55,14 +58,16 @@ export default function SettingsPage() {
 
   useEffect(() => { fetchProfile() }, [fetchProfile])
 
-  // 自動計算値（4項目が揃っているとき）
-  const allFilled = height !== '' && age !== '' && weight !== '' && goalWeight !== ''
+  // 自動計算値（5項目が揃っているとき）
+  const allFilled =
+    gender !== '' && height !== '' && age !== '' && weight !== '' && goalWeight !== ''
   const calculated = allFilled
     ? calcTargetCalories({
         height: parseFloat(height),
         weight: parseFloat(weight),
         goalWeight: parseFloat(goalWeight),
         age: parseInt(age),
+        gender: gender as Gender,
       })
     : null
 
@@ -81,6 +86,7 @@ export default function SettingsPage() {
     try {
       const { error: upsertError } = await supabase.from('users').upsert({
         id: user.id,
+        gender: gender === '' ? null : gender,
         height: height ? parseFloat(height) : null,
         goal_weight: goalWeight ? parseFloat(goalWeight) : null,
         age: age ? parseInt(age) : null,
@@ -125,6 +131,31 @@ export default function SettingsPage() {
       <form onSubmit={handleSave} className="space-y-3">
         <Card className="space-y-4">
           <p className="text-sm font-semibold text-gray-800">あなたの情報</p>
+
+          {/* 性別 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">性別</label>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { value: 'female', label: '女性', activeClass: 'border-rose-400 bg-rose-50 text-rose-500 font-semibold' },
+                { value: 'male',   label: '男性', activeClass: 'border-sky-400 bg-sky-50 text-sky-500 font-semibold' },
+              ] as const).map((g) => (
+                <button
+                  key={g.value}
+                  type="button"
+                  onClick={() => setGender(g.value)}
+                  className={`py-2 rounded-lg border text-sm transition-colors ${
+                    gender === g.value
+                      ? g.activeClass
+                      : 'border-gray-300 bg-white text-gray-600'
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">基礎代謝の計算に使います</p>
+          </div>
 
           {/* 身長 */}
           <Field label="身長" unit="cm">
