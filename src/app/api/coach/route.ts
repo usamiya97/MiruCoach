@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAnthropic } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/rate-limit'
 import type { CoachRequest } from '@/types'
 
 const MAX_MESSAGE_LENGTH = 2000
@@ -46,6 +47,12 @@ export async function POST(request: Request) {
 
     if (profile?.plan !== 'premium') {
       return NextResponse.json({ error: 'Premium required' }, { status: 403 })
+    }
+
+    // レート制限（短時間の濫用ガード。Claude API のコスト爆発を抑える）
+    const rate = await checkRateLimit(supabase, user.id, RATE_LIMITS.coach)
+    if (!rate.allowed) {
+      return rateLimitedResponse(rate)
     }
 
     // 入力検証

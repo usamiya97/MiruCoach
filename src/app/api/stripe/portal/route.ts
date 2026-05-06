@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
+import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function GET() {
   try {
@@ -8,6 +9,11 @@ export async function GET() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'))
+    }
+
+    const rate = await checkRateLimit(supabase, user.id, RATE_LIMITS['stripe-portal'])
+    if (!rate.allowed) {
+      return rateLimitedResponse(rate)
     }
 
     const { data: profile } = await supabase
