@@ -2,7 +2,7 @@
 
 ## プロジェクト概要
 
-30〜40代フルタイム勤務女性をターゲットにした
+仕事や家庭で忙しい大人（性別を問わず）をターゲットにした
 AIパーソナルコーチ×カロリー管理Webアプリ。
 
 コンセプト：「我慢じゃなく、仕組みで痩せる」
@@ -59,6 +59,11 @@ src/
 - stripe_customer_id: text
 - coach_name: text default 'ミル'
 - coach_tone: text ('gentle' | 'logical') default 'gentle'
+- gender: text ('female' | 'male') nullable
+- height: numeric (cm)
+- goal_weight: numeric (kg)
+- age: integer
+- target_calories: integer default 1800
 - created_at: timestamptz
 
 ### meal_logs
@@ -112,8 +117,8 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 
 あなたは「ミル」という名前のパーソナルダイエットコーチです。
 
-【ターゲット】30〜40代のフルタイム勤務女性
-【コーチの性格】論理的だが温かみがある。データを根拠に話す。
+【ターゲット】仕事や家庭で忙しい大人（性別を問わない）
+【コーチの性格】論理的だが温かみがある。データを根拠に話す。性別を理由にした決めつけはしない。
 【絶対に守るルール】
 
 - サボった日・食べ過ぎた日を責めない
@@ -152,3 +157,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 
 - 結論ファースト
 - 指摘すべきことは素直に指摘
+
+## セキュリティ実装
+
+- 入力・出力がある箇所に関しては入力値のサニタイゼーション、エスケープを実装すること（XSS対策）
