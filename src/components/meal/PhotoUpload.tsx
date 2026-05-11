@@ -9,6 +9,9 @@ import Button from '@/components/ui/Button'
 interface PhotoUploadProps {
   onSave: (data: {
     calories: number
+    protein: number | null
+    fat: number | null
+    carbs: number | null
     note: string
     meal_type: MealType
     photo_url: string | null
@@ -107,6 +110,9 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
     try {
       await onSave({
         calories: analyzed.calories,
+        protein: analyzed.protein,
+        fat:     analyzed.fat,
+        carbs:   analyzed.carbs,
         note: analyzed.note,
         meal_type: mealType,
         photo_url: null,
@@ -209,7 +215,29 @@ export default function PhotoUpload({ onSave }: PhotoUploadProps) {
           <p className="text-2xl font-bold text-rose-500 text-center">
             {analyzed.calories.toLocaleString()} <span className="text-base font-normal">kcal</span>
           </p>
-          <p className="text-sm text-gray-500 text-center">{analyzed.note}</p>
+          {(analyzed.protein !== null || analyzed.fat !== null || analyzed.carbs !== null) && (
+            <div className="grid grid-cols-3 gap-1 pt-2 mt-1 border-t border-rose-100 text-center">
+              <div>
+                <p className="text-[10px] text-gray-500">P（推定）</p>
+                <p className="text-xs font-semibold text-gray-700">
+                  {analyzed.protein ?? '—'}<span className="text-[10px] text-gray-400 ml-0.5">g</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500">F（推定）</p>
+                <p className="text-xs font-semibold text-gray-700">
+                  {analyzed.fat ?? '—'}<span className="text-[10px] text-gray-400 ml-0.5">g</span>
+                </p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-500">C（推定）</p>
+                <p className="text-xs font-semibold text-gray-700">
+                  {analyzed.carbs ?? '—'}<span className="text-[10px] text-gray-400 ml-0.5">g</span>
+                </p>
+              </div>
+            </div>
+          )}
+          <p className="text-sm text-gray-500 text-center pt-1">{analyzed.note}</p>
         </div>
       )}
 

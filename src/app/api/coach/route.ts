@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAnthropic } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, rateLimitedResponse, RATE_LIMITS } from '@/lib/rate-limit'
+import { getJstNow, toJstDateStr } from '@/lib/datetime'
 import type { CoachRequest } from '@/types'
 
 const MAX_MESSAGE_LENGTH = 2000
@@ -84,7 +85,7 @@ export async function POST(request: Request) {
     const [mealLogsRes, bodyLogsRes, historyRes] = await Promise.all([
       supabase
         .from('meal_logs')
-        .select('calories, meal_type, logged_at')
+        .select('calories, protein, fat, carbs, meal_type, logged_at')
         .eq('user_id', user.id)
         .gte('logged_at', sevenDaysAgo)
         .order('logged_at', { ascending: false }),
@@ -106,18 +107,42 @@ export async function POST(request: Request) {
     const bodyLogs = bodyLogsRes.data ?? []
     const history = (historyRes.data ?? []).reverse()
 
-    // 日別カロリー集計
-    const dailyCalories: Record<string, number> = {}
-    for (const log of mealLogs) {
-      const date = log.logged_at.slice(0, 10)
-      dailyCalories[date] = (dailyCalories[date] ?? 0) + log.calories
+    // 日別カロリー＆PFC集計
+    // PFC は null（記録不足）の食事もあるため、合計と「PFCがある食事の数 / 全体」を併記
+    // 注意: Supabase は numeric 型を文字列で返すので Number() で必ず数値化する（文字列連結事故の防止）
+    type Daily = { kcal: number; protein: number; fat: number; carbs: number; total: number; pfcCount: number }
+    const daily: Record<string, Daily> = {}
+    const toNum = (v: unknown): number => {
+      if (v === null || v === undefined) return 0
+      const n = Number(v)
+      return Number.isFinite(n) ? n : 0
     }
-    const calorySummary = Object.entries(dailyCalories)
-      .map(([date, cal]) => `${date}: ${cal}kcal`)
+    for (const log of mealLogs) {
+      // logged_at は UTC で返るので、JST 日付に変換して集計する
+      // （日本時間 23 時に食べた食事を「今日」として扱うため）
+      const date = toJstDateStr(log.logged_at)
+      const d = (daily[date] ??= { kcal: 0, protein: 0, fat: 0, carbs: 0, total: 0, pfcCount: 0 })
+      d.kcal  += Number(log.calories) || 0
+      d.total += 1
+      if (log.protein !== null || log.fat !== null || log.carbs !== null) {
+        d.protein += toNum(log.protein)
+        d.fat     += toNum(log.fat)
+        d.carbs   += toNum(log.carbs)
+        d.pfcCount += 1
+      }
+    }
+    const round1 = (n: number) => Math.round(n * 10) / 10
+    const calorySummary = Object.entries(daily)
+      .map(([date, d]) => {
+        const pfc = d.pfcCount > 0
+          ? ` / P${round1(d.protein)}g F${round1(d.fat)}g C${round1(d.carbs)}g（PFC記録 ${d.pfcCount}/${d.total}件）`
+          : ''
+        return `${date}: ${d.kcal}kcal${pfc}`
+      })
       .join('\n')
 
     const weightSummary = bodyLogs
-      .map((b) => `${b.logged_at.slice(0, 10)}: ${b.weight}kg`)
+      .map((b) => `${toJstDateStr(b.logged_at)}: ${b.weight}kg`)
       .join('\n')
 
     const coachName = sanitizeCoachName(profile.coach_name)
@@ -127,8 +152,15 @@ export async function POST(request: Request) {
     const genderLabel =
       profile.gender === 'male' ? '男性' :
       profile.gender === 'female' ? '女性' : '未設定'
+    // ユーザー（日本居住）視点での「今日」を明示する
+    const { dateStr: todayJst } = getJstNow()
 
     const systemPrompt = `あなたは「${coachName}」という名前の、専属パーソナルダイエットコーチです。
+
+## 今日の日付（必ずこの日付を「今日」として扱うこと）
+${todayJst}（日本時間 / Asia/Tokyo）
+※ 後述のデータ日付もすべて日本時間の YYYY-MM-DD。「今日 = ${todayJst}」、「昨日 = ${todayJst} の前日」と判断する。
+※ あなた自身の知識やトレーニング日付は無視し、必ずこの日付を基準に話すこと。
 
 ## あなたの役割
 仕事や家庭で忙しい大人が「我慢せず、仕組みで痩せる」を実現できるよう、毎日のデータをもとに具体的・継続的にサポートする。性別や年齢に関係なく、その人の生活リズムに合わせて伴走する。
@@ -153,6 +185,13 @@ ${isLogical
 - カロリーが目標を超えた日は「次の食事での調整」を提案（翌日まで引っ張らない）
 - 体重が増えていても食事記録が良ければ「行動を褒める」（体重だけで評価しない）
 - 3日以上記録がない場合は「記録再開を優しく促す」
+
+## PFC（たんぱく質・脂質・炭水化物）の扱い方
+- 食事記録には P（たんぱく質g）/ F（脂質g）/ C（炭水化物g）を併記している（PFC記録の括弧内は「PFCが取れている食事数 / その日の全食事数」）
+- 一部食事は PFC が取れていない（写真推定 or 直接入力）。括弧内が n/n に満たない日は「合計値はあくまで一部からの推定」と理解する
+- 体重1kgあたり たんぱく質1.0〜1.6g が目安。明らかに不足／過多なときだけ言及する（毎回計算結果を読み上げない）
+- 脂質は総摂取カロリーの20〜30%程度が目安（脂質g × 9 ÷ 総kcal）
+- ユーザーが PFC や栄養素について質問した時にだけ詳細に答える。普段はカロリー中心で会話する
 
 ## 状況別の対応方針
 - **食べ過ぎた日**: 責めず「今夜/明日の朝食でリカバリーできる量」を具体的に示す

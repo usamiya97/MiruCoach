@@ -98,10 +98,16 @@ export async function POST(request: Request) {
             },
             {
               type: 'text',
-              text: `この食事の写真を見て、カロリーを推定してください。
+              text: `この食事の写真を見てカロリーと PFC（たんぱく質・脂質・炭水化物）を推定してください。
 以下のJSON形式のみで返答してください。説明文は不要です。
-{"calories": 数値, "note": "料理名と簡単な内訳（例: ご飯200kcal、鶏の唐揚げ3個350kcal）"}
-カロリーは整数で返してください。`,
+
+{"calories": 整数, "protein": 数値, "fat": 数値, "carbs": 数値, "note": "料理名と簡単な内訳（例: ご飯200kcal、鶏の唐揚げ3個350kcal）"}
+
+ルール:
+- calories は整数（kcal）
+- protein / fat / carbs はグラム数（小数1桁まで可）
+- 推定が困難で値が出せない栄養素は null を返す
+- note は日本語で簡潔に`,
             },
           ],
         },
@@ -115,7 +121,17 @@ export async function POST(request: Request) {
       throw new Error('Failed to parse GPT response')
     }
 
-    const result: AnalyzeMealResponse = JSON.parse(jsonMatch[0])
+    const raw = JSON.parse(jsonMatch[0]) as Record<string, unknown>
+    // 数値以外（"~150" や null）は null に正規化
+    const toNumOrNull = (v: unknown): number | null =>
+      typeof v === 'number' && Number.isFinite(v) ? v : null
+    const result: AnalyzeMealResponse = {
+      calories: typeof raw.calories === 'number' ? Math.round(raw.calories) : 0,
+      protein:  toNumOrNull(raw.protein),
+      fat:      toNumOrNull(raw.fat),
+      carbs:    toNumOrNull(raw.carbs),
+      note:     typeof raw.note === 'string' ? raw.note : '',
+    }
     return NextResponse.json(result)
   } catch (error) {
     console.error('analyze-meal error:', error)

@@ -23,6 +23,9 @@ export interface MealLog {
   user_id: string
   photo_url: string | null
   calories: number
+  protein: number | null
+  fat: number | null
+  carbs: number | null
   meal_type: MealType
   note: string | null
   logged_at: string
@@ -56,5 +59,26 @@ export interface AnalyzeMealRequest {
 
 export interface AnalyzeMealResponse {
   calories: number
+  protein: number | null
+  fat: number | null
+  carbs: number | null
   note: string
+}
+
+// 食品マスタ（文科省 食品成分表）
+export interface Food {
+  id: string
+  name: string
+  name_kana: string | null
+  category: string
+  calories_per_100g: number
+  protein_per_100g: number | null
+  fat_per_100g: number | null
+  carbs_per_100g: number | null
+  is_common: boolean
+  display_name: string | null
+}
+
+export interface FoodSearchResponse {
+  foods: Food[]
 }
