@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [age, setAge]               = useState('')
   const [weight, setWeight]         = useState('')
   const [goalWeight, setGoalWeight] = useState('')
+  const [goalTargetDate, setGoalTargetDate] = useState('')
   const [targetCalories, setTargetCalories] = useState('')
   const [useManual, setUseManual]   = useState(false)
   const [coachName, setCoachName]   = useState('ミル')
@@ -29,7 +30,7 @@ export default function SettingsPage() {
   const fetchProfile = useCallback(async () => {
     const [profileRes, latestWeightRes] = await Promise.all([
       supabase.from('users')
-        .select('height, goal_weight, age, target_calories, coach_name, coach_tone, gender')
+        .select('height, goal_weight, goal_target_date, age, target_calories, coach_name, coach_tone, gender')
         .eq('id', user.id)
         .single(),
       supabase.from('body_logs')
@@ -45,6 +46,7 @@ export default function SettingsPage() {
       setGender((p.gender as Gender | null) ?? '')
       setHeight(p.height?.toString() ?? '')
       setGoalWeight(p.goal_weight?.toString() ?? '')
+      setGoalTargetDate(p.goal_target_date ?? '')
       setAge(p.age?.toString() ?? '')
       setTargetCalories(p.target_calories?.toString() ?? '1800')
       setCoachName(p.coach_name ?? 'ミル')
@@ -84,11 +86,25 @@ export default function SettingsPage() {
     setError(null)
 
     try {
+      // 目標期限は今日以降のみ許可。過去日は弾く（サーバ側のRLSは ALTER 列の追加だけなので
+      // クライアント側でバリデーション。空文字は null として未設定扱い）
+      const todayJst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+      let goalDate: string | null = null
+      if (goalTargetDate) {
+        if (goalTargetDate < todayJst) {
+          setError('目標達成希望日は今日以降の日付を選択してください')
+          setSaving(false)
+          return
+        }
+        goalDate = goalTargetDate
+      }
+
       const { error: upsertError } = await supabase.from('users').upsert({
         id: user.id,
         gender: gender === '' ? null : gender,
         height: height ? parseFloat(height) : null,
         goal_weight: goalWeight ? parseFloat(goalWeight) : null,
+        goal_target_date: goalDate,
         age: age ? parseInt(age) : null,
         target_calories: parseInt(targetCalories),
         coach_name: coachName.trim() || 'ミル',
@@ -192,6 +208,22 @@ export default function SettingsPage() {
               className={inputClass} placeholder="53.0"
             />
           </Field>
+
+          {/* 目標達成希望日（任意） */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              目標達成希望日 <span className="text-xs text-gray-400 font-normal">（任意）</span>
+            </label>
+            <input
+              type="date"
+              value={goalTargetDate}
+              onChange={(e) => setGoalTargetDate(e.target.value)}
+              className={inputClass}
+            />
+            <p className="text-[11px] text-gray-400 mt-1">
+              期限を入れるとコーチが必要ペースをふまえて話します
+            </p>
+          </div>
         </Card>
 
         {/* 目標カロリー */}

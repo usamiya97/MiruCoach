@@ -9,6 +9,7 @@ import PhotoUpload from '@/components/meal/PhotoUpload'
 import FoodSearch from '@/components/meal/FoodSearch'
 import MealDateNavigator from '@/components/meal/MealDateNavigator'
 import { getJstNow, jstDayRange } from '@/lib/datetime'
+import { fireProactiveAfterMeal } from '@/lib/proactive'
 import type { LucideIcon } from 'lucide-react'
 import type { MealLog, MealType, Food } from '@/types'
 
@@ -106,6 +107,9 @@ export default function MealPage() {
     if (error) throw new Error(error.message)
     await fetchMealsForDate(selectedDate)
     showSuccess(`食事を${successMessage()}`)
+    // AI コーチからのプロアクティブメッセージを取りにいく（fire-and-forget）
+    // 発火条件はサーバ側で判定するためクライアントは結果を気にしない
+    if (isTodaySelected) void fireProactiveAfterMeal()
   }
 
   // 食品検索モードのとき、選択食品 × 入力グラム数からカロリー & PFC を計算
@@ -201,6 +205,8 @@ export default function MealPage() {
       setGrams('')
       await fetchMealsForDate(selectedDate)
       showSuccess(`食事を${successMessage()}`)
+      // AI コーチからのプロアクティブメッセージを取りにいく（fire-and-forget）
+      if (isTodaySelected) void fireProactiveAfterMeal()
     } catch {
       setError('保存に失敗しました')
     } finally {

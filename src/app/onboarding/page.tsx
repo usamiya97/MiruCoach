@@ -15,6 +15,7 @@ export default function OnboardingPage() {
   const [age, setAge]               = useState('')
   const [weight, setWeight]         = useState('')
   const [goalWeight, setGoalWeight] = useState('')
+  const [goalTargetDate, setGoalTargetDate] = useState('')
   const [saving, setSaving]         = useState(false)
   const [error, setError]           = useState<string | null>(null)
 
@@ -59,12 +60,18 @@ export default function OnboardingPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
+      // 目標期限は任意。未入力 or 過去日は null として保存（過去日は黙って捨てる：
+      // オンボーディングではブロックせず先に進めることを優先）
+      const todayJst = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' })
+      const goalDate = goalTargetDate && goalTargetDate >= todayJst ? goalTargetDate : null
+
       // users テーブルに upsert（レコードがなければ作成）
       const { error: upsertError } = await supabase.from('users').upsert({
         id: user.id,
         gender,
         height: parseFloat(height),
         goal_weight: parseFloat(goalWeight),
+        goal_target_date: goalDate,
         age: parseInt(age),
         target_calories: preview,
       })
@@ -218,6 +225,20 @@ export default function OnboardingPage() {
               />
               <span className="absolute right-3 top-2 text-sm text-gray-400">kg</span>
             </div>
+          </div>
+
+          {/* 目標達成希望日（任意） */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              目標達成希望日 <span className="text-xs text-gray-400 font-normal">（任意）</span>
+            </label>
+            <input
+              type="date"
+              value={goalTargetDate}
+              onChange={(e) => setGoalTargetDate(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-400"
+            />
+            <p className="text-[11px] text-gray-400 mt-1">後で設定からも変更できます</p>
           </div>
 
           {/* 計算結果プレビュー */}
