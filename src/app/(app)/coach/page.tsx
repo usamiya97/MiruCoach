@@ -7,6 +7,7 @@ import { Check, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import ChatMessage from '@/components/coach/ChatMessage'
 import ChatInput from '@/components/coach/ChatInput'
+import { markCoachRead } from '@/lib/proactive'
 import type { CoachMessage } from '@/types'
 
 export default function CoachPage() {
@@ -37,11 +38,43 @@ export default function CoachPage() {
     }
     setMessages(historyRes.data ?? [])
     setLoading(false)
+    return profileRes.data?.plan === 'premium'
   }, [supabase, user.id])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    let cancelled = false
+    fetchData().then(async (premium) => {
+      // コーチ画面を開いた時点で既読扱い（ナビの未読バッジを消す）
+      markCoachRead()
+
+      if (cancelled || !premium) return
+
+      // プロアクティブメッセージを取得（条件を満たさない場合はサーバが null を返す）
+      try {
+        const res = await fetch('/api/coach/proactive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trigger: 'session_open' }),
+        })
+        if (!res.ok) return
+        const data = (await res.json()) as { message: string | null }
+        if (cancelled || !data.message) return
+        const proactiveMsg: CoachMessage = {
+          id: `proactive-${Date.now()}`,
+          user_id: user.id,
+          role: 'assistant',
+          content: data.message,
+          created_at: new Date().toISOString(),
+        }
+        setMessages((prev) => [...prev, proactiveMsg])
+        // 画面に表示したので既読のまま
+        markCoachRead()
+      } catch {
+        // ネットワーク失敗時は静かに諦める（UI には影響させない）
+      }
+    })
+    return () => { cancelled = true }
+  }, [fetchData, user.id])
 
   useEffect(() => {
     if (isInitialLoad.current) {
