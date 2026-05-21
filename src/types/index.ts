@@ -13,6 +13,7 @@ export interface User {
   gender: Gender | null
   height: number | null
   goal_weight: number | null
+  goal_target_date: string | null
   age: number | null
   target_calories: number
   created_at: string
