@@ -5,9 +5,10 @@ import { Leaf, Sparkles, UtensilsCrossed, Plus, Sunrise, Sun, Moon } from 'lucid
 import CalorieRing from '@/components/ui/CalorieRing'
 import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
+import WeeklySummary from '@/components/ui/WeeklySummary'
 import UpgradeWaiter from '@/components/ui/UpgradeWaiter'
 import MealCard from '@/components/meal/MealCard'
-import { getJstNow, jstDayRange } from '@/lib/datetime'
+import { getJstNow, jstDayRange, jstDateAddDays, toJstDateStr } from '@/lib/datetime'
 import type { MealLog } from '@/types'
 
 function getGreeting(hour: number): string {
@@ -41,7 +42,12 @@ export default async function DashboardPage({
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-  const [profileRes, mealLogsRes, weightLogsRes] = await Promise.all([
+  // 今週のまとめ: 今日を含む直近7日 (JST)
+  const weekStartDate = jstDateAddDays(todayStr, -6)
+  const { start: weekStart } = jstDayRange(weekStartDate)
+  const { end: weekEnd } = jstDayRange(todayStr)
+
+  const [profileRes, mealLogsRes, weightLogsRes, weeklyMealsRes] = await Promise.all([
     supabase.from('users')
       .select('plan, coach_name, target_calories')
       .eq('id', user.id)
@@ -57,14 +63,40 @@ export default async function DashboardPage({
       .eq('user_id', user.id)
       .gte('logged_at', thirtyDaysAgo.toISOString())
       .order('logged_at', { ascending: true }),
+    supabase.from('meal_logs')
+      .select('calories, logged_at')
+      .eq('user_id', user.id)
+      .gte('logged_at', weekStart)
+      .lte('logged_at', weekEnd),
   ])
 
   const profile      = profileRes.data
   const meals: MealLog[] = mealLogsRes.data ?? []
   const weightLogs   = weightLogsRes.data ?? []
+  const weeklyMeals  = weeklyMealsRes.data ?? []
 
   const totalCalories  = meals.reduce((sum, m) => sum + m.calories, 0)
   const targetCalories = profile?.target_calories ?? 1800
+
+  // 直近7日の日別カロリー集計 (JST日付ごと)
+  const caloriesByDate: Record<string, number> = {}
+  for (const log of weeklyMeals) {
+    const d = toJstDateStr(log.logged_at)
+    caloriesByDate[d] = (caloriesByDate[d] ?? 0) + (Number(log.calories) || 0)
+  }
+  const dailyTotals = Object.values(caloriesByDate)
+  const recordedDays = dailyTotals.length
+  const avgCalories = recordedDays > 0
+    ? Math.round(dailyTotals.reduce((s, v) => s + v, 0) / recordedDays)
+    : null
+  const achievedDays = dailyTotals.filter((v) => v <= targetCalories).length
+
+  // 表示用ラベル: 'M/D - M/D'
+  const formatMd = (s: string) => {
+    const [, mm, dd] = s.split('-')
+    return `${Number(mm)}/${Number(dd)}`
+  }
+  const weekRangeLabel = `${formatMd(weekStartDate)} - ${formatMd(todayStr)}`
 
   const weightByDate: Record<string, number> = {}
   for (const log of weightLogs) {
@@ -178,6 +210,16 @@ export default async function DashboardPage({
             )}
           </div>
         </div>
+
+        {/* 今週のまとめ（今日表示時のみ） */}
+        {isToday && (
+          <WeeklySummary
+            avgCalories={avgCalories}
+            recordedDays={recordedDays}
+            achievedDays={achievedDays}
+            rangeLabel={weekRangeLabel}
+          />
+        )}
 
         {/* 体重グラフ */}
         <div className="bg-white rounded-2xl shadow-sm p-4">

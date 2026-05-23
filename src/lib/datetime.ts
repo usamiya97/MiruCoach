@@ -38,3 +38,15 @@ const jstDateFormatter = new Intl.DateTimeFormat('en-CA', {
 export function toJstDateStr(iso: string): string {
   return jstDateFormatter.format(new Date(iso))
 }
+
+// JST 日付文字列 'YYYY-MM-DD' に日数を加減算して JST 日付文字列を返す。
+// 例: jstDateAddDays('2026-05-23', -6) → '2026-05-17'
+export function jstDateAddDays(dateStr: string, days: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  dt.setUTCDate(dt.getUTCDate() + days)
+  const yy = dt.getUTCFullYear()
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, '0')
+  const dd = String(dt.getUTCDate()).padStart(2, '0')
+  return `${yy}-${mm}-${dd}`
+}
