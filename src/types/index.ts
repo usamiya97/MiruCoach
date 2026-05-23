@@ -66,6 +66,11 @@ export interface AnalyzeMealResponse {
   note: string
 }
 
+// テキスト解析APIへのリクエスト型
+export interface AnalyzeMealTextRequest {
+  text: string
+}
+
 // 食品マスタ（文科省 食品成分表）
 export interface Food {
   id: string

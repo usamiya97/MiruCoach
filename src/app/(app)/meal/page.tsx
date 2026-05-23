@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/lib/user-context'
-import { Camera, PenLine, Scale, Sunrise, Sun, Moon, Cookie } from 'lucide-react'
+import { Camera, MessageSquareText, PenLine, Scale, Sunrise, Sun, Moon, Cookie } from 'lucide-react'
 import MealCard from '@/components/meal/MealCard'
 import PhotoUpload from '@/components/meal/PhotoUpload'
+import TextMealInput from '@/components/meal/TextMealInput'
 import FoodSearch from '@/components/meal/FoodSearch'
 import MealDateNavigator from '@/components/meal/MealDateNavigator'
 import { getJstNow, jstDayRange } from '@/lib/datetime'
@@ -13,7 +14,7 @@ import { fireProactiveAfterMeal } from '@/lib/proactive'
 import type { LucideIcon } from 'lucide-react'
 import type { MealLog, MealType, Food } from '@/types'
 
-type Tab = 'photo' | 'manual' | 'weight'
+type Tab = 'photo' | 'text' | 'manual' | 'weight'
 
 const mealTypeOptions: { value: MealType; label: string; icon: LucideIcon }[] = [
   { value: 'breakfast', label: '朝食', icon: Sunrise },
@@ -257,20 +258,21 @@ export default function MealPage() {
         {/* タブ */}
         <div className="bg-white rounded-2xl shadow-sm p-1.5 flex gap-1">
           {([
-            { key: 'photo',  label: '写真',  icon: Camera  },
-            { key: 'manual', label: '手入力', icon: PenLine },
-            { key: 'weight', label: '体重',  icon: Scale   },
+            { key: 'photo',  label: '写真',    icon: Camera            },
+            { key: 'text',   label: 'テキスト', icon: MessageSquareText },
+            { key: 'manual', label: '手入力',  icon: PenLine           },
+            { key: 'weight', label: '体重',    icon: Scale             },
           ] as { key: Tab; label: string; icon: LucideIcon }[]).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => { setTab(key); setError(null) }}
-              className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-center gap-1 ${
                 tab === key
                   ? 'bg-linear-to-r from-rose-500 to-pink-400 text-white shadow-sm'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              <Icon size={14} strokeWidth={2} />
+              <Icon size={13} strokeWidth={2} />
               {label}
             </button>
           ))}
@@ -292,6 +294,13 @@ export default function MealPage() {
         {tab === 'photo' && (
           <div className="bg-white rounded-2xl shadow-sm p-4">
             <PhotoUpload onSave={handlePhotoSave} />
+          </div>
+        )}
+
+        {/* テキストタブ */}
+        {tab === 'text' && (
+          <div className="bg-white rounded-2xl shadow-sm p-4">
+            <TextMealInput onSave={handlePhotoSave} />
           </div>
         )}
 
