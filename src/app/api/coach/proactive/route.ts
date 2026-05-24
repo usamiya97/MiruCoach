@@ -4,7 +4,7 @@ import { getAnthropic } from '@/lib/anthropic'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, rateLimitedResponse } from '@/lib/rate-limit'
 import { buildCoachContext, COACH_PROFILE_SELECT, type CoachProfile } from '@/lib/coach-context'
-import { getJstNow, jstDayRange } from '@/lib/datetime'
+import { getJstNow, jstDayRange, jstDateAddDays, toJstDateStr } from '@/lib/datetime'
 
 // プロアクティブメッセージ生成 API。
 // クライアントから「画面を開いた」「食事を記録した」をトリガーとして呼ばれ、
@@ -43,6 +43,18 @@ const EXTREME_CARBS_G = 100
 const EXTREME_PROTEIN_G = 60
 const EXTREME_FAT_G = 50
 
+// meal_skipped: この時刻を過ぎても今日の記録が0件なら発火
+const MEAL_SKIPPED_HOUR_JST = 14
+
+// streak_celebrate: 連続記録の節目（90日以上はクエリ範囲外なので扱わない）
+const STREAK_MILESTONES = [3, 7, 14, 21, 30, 60, 90] as const
+// 連続記録カウントに使う meal_logs の参照範囲
+const STREAK_LOOKBACK_DAYS = 95
+
+function isStreakMilestone(n: number): boolean {
+  return (STREAK_MILESTONES as readonly number[]).includes(n)
+}
+
 // JST の月曜判定（getJstNow の dateStr から曜日を求める）
 function isJstMonday(jstDateStr: string): boolean {
   const [y, m, d] = jstDateStr.split('-').map(Number)
@@ -54,7 +66,9 @@ function isJstMonday(jstDateStr: string): boolean {
 
 interface SessionOpenDecision {
   fire: boolean
-  mode: 'weekly_review' | 'greeting'
+  mode: 'weekly_review' | 'greeting' | 'meal_skipped' | 'streak_celebrate'
+  // streak_celebrate モードで Seed メッセージに連続日数を埋め込むため
+  streak?: number
 }
 
 interface AfterMealDecision {
@@ -62,11 +76,63 @@ interface AfterMealDecision {
   reason: 'over_target' | 'pfc_extreme' | null
 }
 
+// 今日 (JST) の meal_logs 件数。記録忘れ催促の判定に使う
+async function countTodayMeals(
+  supabase: SupabaseClient,
+  userId: string,
+  todayJst: string
+): Promise<number> {
+  const { start, end } = jstDayRange(todayJst)
+  const { count } = await supabase
+    .from('meal_logs')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .gte('logged_at', start)
+    .lte('logged_at', end)
+  return count ?? 0
+}
+
+// 今日 (JST) を含めて何日連続で食事を記録しているかを返す。
+// 今日の記録が0件なら 0 を返す（"今日達成済み" でないと streak とは見なさない）。
+async function calculateMealStreak(
+  supabase: SupabaseClient,
+  userId: string,
+  todayJst: string
+): Promise<number> {
+  const fromDate = jstDateAddDays(todayJst, -(STREAK_LOOKBACK_DAYS - 1))
+  const { start } = jstDayRange(fromDate)
+  const { end } = jstDayRange(todayJst)
+
+  const { data } = await supabase
+    .from('meal_logs')
+    .select('logged_at')
+    .eq('user_id', userId)
+    .gte('logged_at', start)
+    .lte('logged_at', end)
+
+  if (!data || data.length === 0) return 0
+
+  const dates = new Set<string>()
+  for (const row of data) {
+    dates.add(toJstDateStr(row.logged_at as string))
+  }
+
+  let streak = 0
+  let cursor = todayJst
+  // 今日から遡って連続している JST 日数を数える
+  while (dates.has(cursor)) {
+    streak++
+    cursor = jstDateAddDays(cursor, -1)
+  }
+  return streak
+}
+
 // session_open 用の発火条件判定
 async function decideSessionOpen(
   supabase: SupabaseClient,
   userId: string,
-  todayJst: string
+  todayJst: string,
+  jstHour: number
 ): Promise<SessionOpenDecision> {
   // 直近の assistant メッセージを取得
   const { data } = await supabase
@@ -84,9 +150,22 @@ async function decideSessionOpen(
   // 24時間以上空いている（初回もここに該当）なら発火
   if (hoursSince < 24) return { fire: false, mode: 'greeting' }
 
-  // JST 月曜なら weekly_review モード、それ以外は通常の挨拶
-  const mode: SessionOpenDecision['mode'] = isJstMonday(todayJst) ? 'weekly_review' : 'greeting'
-  return { fire: true, mode }
+  // 発火優先順位: 月曜の週次 > 連続記録の節目 > 記録忘れ催促 > 通常挨拶
+  if (isJstMonday(todayJst)) return { fire: true, mode: 'weekly_review' }
+
+  const streak = await calculateMealStreak(supabase, userId, todayJst)
+  if (isStreakMilestone(streak)) {
+    return { fire: true, mode: 'streak_celebrate', streak }
+  }
+
+  if (jstHour >= MEAL_SKIPPED_HOUR_JST) {
+    const todayMealCount = await countTodayMeals(supabase, userId, todayJst)
+    if (todayMealCount === 0) {
+      return { fire: true, mode: 'meal_skipped' }
+    }
+  }
+
+  return { fire: true, mode: 'greeting' }
 }
 
 // after_meal 用の発火条件判定
@@ -131,11 +210,19 @@ async function decideAfterMeal(
 // 各シチュエーションで Claude に渡す擬似 user メッセージを組み立てる
 function buildSeedMessage(
   trigger: ProactiveTrigger,
-  mode: SessionOpenDecision['mode'] | AfterMealDecision['reason']
+  mode: SessionOpenDecision['mode'] | AfterMealDecision['reason'],
+  meta?: { streak?: number }
 ): string {
   if (trigger === 'session_open') {
     if (mode === 'weekly_review') {
       return '[内部メッセージ: 今日は月曜日です。ユーザーが久しぶりにチャットを開きました。先週(月〜日)のユーザーのデータを振り返るメッセージを1通生成してください。良かった点1つ・気になる点1つ・今週の小さな一手1つ。4文以内可。挨拶も短く。]'
+    }
+    if (mode === 'streak_celebrate') {
+      const days = meta?.streak ?? 0
+      return `[内部メッセージ: ユーザーが今日で${days}日連続で食事を記録しました。これは継続の大事な節目です。素直に褒めて、明日以降も続けたくなる短いメッセージを1通お願いします。3文以内。挨拶は短く。「すごい」を連発せず、具体的に何が良いか1点だけ触れる。]`
+    }
+    if (mode === 'meal_skipped') {
+      return '[内部メッセージ: 既に午後ですが、ユーザーは今日まだ食事を1件も記録していません。責めずに優しく確認し、食べているなら記録を、食べていないなら無理のない範囲で食事を促すメッセージを1通お願いします。3文以内。]'
     }
     return '[内部メッセージ: ユーザーがチャット画面を開きました。最近の食事や体重のデータを軽く踏まえて、自然に話しかける挨拶メッセージを1通生成してください。3文以内。データが乏しい場合は記録再開を優しく促してください。]'
   }
@@ -187,15 +274,17 @@ export async function POST(request: Request) {
       return rateLimitedResponse(abuseRate)
     }
 
-    const { dateStr: todayJst } = getJstNow()
+    const { dateStr: todayJst, hour: jstHour } = getJstNow()
     const targetCalories = profile.target_calories ?? 1800
 
     // trigger 別の発火条件判定
     let seedMode: SessionOpenDecision['mode'] | AfterMealDecision['reason'] = null
+    let streakMeta: number | undefined
     if (trigger === 'session_open') {
-      const decision = await decideSessionOpen(supabase, user.id, todayJst)
+      const decision = await decideSessionOpen(supabase, user.id, todayJst, jstHour)
       if (!decision.fire) return NextResponse.json({ message: null })
       seedMode = decision.mode
+      streakMeta = decision.streak
     } else {
       const decision = await decideAfterMeal(supabase, user.id, todayJst, targetCalories)
       if (!decision.fire) return NextResponse.json({ message: null })
@@ -209,7 +298,7 @@ export async function POST(request: Request) {
 
     // コンテキスト構築 + Claude 呼び出し
     const { systemPrompt, history } = await buildCoachContext(supabase, user.id, profile)
-    const seedMessage = buildSeedMessage(trigger as ProactiveTrigger, seedMode)
+    const seedMessage = buildSeedMessage(trigger as ProactiveTrigger, seedMode, { streak: streakMeta })
 
     // 末尾が 'user' で終わる壊れた履歴を避けるため、trailing 'user' を1つだけ落とす
     // （Anthropic は連続 user を許容するが、念のため）
