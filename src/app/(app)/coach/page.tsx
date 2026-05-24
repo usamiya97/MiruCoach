@@ -3,17 +3,51 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/lib/user-context'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2, Flame } from 'lucide-react'
 import Image from 'next/image'
 import ChatMessage from '@/components/coach/ChatMessage'
 import ChatInput from '@/components/coach/ChatInput'
+import SuggestedPrompts from '@/components/coach/SuggestedPrompts'
 import { markCoachRead } from '@/lib/proactive'
+import { getJstNow, jstDayRange, jstDateAddDays, toJstDateStr } from '@/lib/datetime'
 import type { CoachMessage } from '@/types'
+
+// コーチへの会話の取っ掛かりとして提示する候補。タップでそのまま送信する。
+const SUGGESTED_PROMPTS = [
+  '今週の振り返りをお願い',
+  '今夜の夕食、迷ってる',
+  '最近の傾向を教えて',
+  '外食でも続けるコツは？',
+] as const
+
+// 直近30日の meal_logs から「今日のカロリー」「連続記録日数」を計算
+function computeSummary(
+  meals: { calories: number; logged_at: string }[],
+  todayJst: string
+): { todayKcal: number; streak: number } {
+  let todayKcal = 0
+  const dates = new Set<string>()
+  for (const m of meals) {
+    const d = toJstDateStr(m.logged_at)
+    if (d === todayJst) todayKcal += Number(m.calories) || 0
+    dates.add(d)
+  }
+  let streak = 0
+  let cursor = todayJst
+  while (dates.has(cursor)) {
+    streak++
+    cursor = jstDateAddDays(cursor, -1)
+  }
+  return { todayKcal, streak }
+}
 
 export default function CoachPage() {
   const [messages, setMessages] = useState<CoachMessage[]>([])
   const [isPremium, setIsPremium] = useState(false)
   const [coachName, setCoachName] = useState('ミル')
+  const [targetCalories, setTargetCalories] = useState(1800)
+  const [todayKcal, setTodayKcal] = useState(0)
+  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -22,20 +56,36 @@ export default function CoachPage() {
   const user = useUser()
 
   const fetchData = useCallback(async () => {
-    const [profileRes, historyRes] = await Promise.all([
-      supabase.from('users').select('plan, coach_name').eq('id', user.id).single(),
+    const { dateStr: todayJst } = getJstNow()
+    // 連続記録判定用に過去30日分を取得（今日のカロリーもここから算出）
+    const summaryStartDate = jstDateAddDays(todayJst, -29)
+    const { start: summaryStart } = jstDayRange(summaryStartDate)
+    const { end: summaryEnd } = jstDayRange(todayJst)
+
+    const [profileRes, historyRes, mealsRes] = await Promise.all([
+      supabase.from('users').select('plan, coach_name, target_calories').eq('id', user.id).single(),
       supabase
         .from('coach_messages')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true })
         .limit(50),
+      supabase
+        .from('meal_logs')
+        .select('calories, logged_at')
+        .eq('user_id', user.id)
+        .gte('logged_at', summaryStart)
+        .lte('logged_at', summaryEnd),
     ])
 
     if (profileRes.data) {
       setIsPremium(profileRes.data.plan === 'premium')
       setCoachName(profileRes.data.coach_name ?? 'ミル')
+      setTargetCalories(profileRes.data.target_calories ?? 1800)
     }
+    const summary = computeSummary(mealsRes.data ?? [], todayJst)
+    setTodayKcal(summary.todayKcal)
+    setStreak(summary.streak)
     setMessages(historyRes.data ?? [])
     setLoading(false)
     return profileRes.data?.plan === 'premium'
@@ -173,30 +223,58 @@ export default function CoachPage() {
     )
   }
 
+  const overTarget = todayKcal > targetCalories
+
   return (
     <div className="max-w-xl lg:max-w-3xl mx-auto flex flex-col h-[calc(100dvh-96px)]">
-      {/* ヘッダー */}
+      {/* ヘッダー: コーチ名 + 今日のミニサマリー */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3">
-        <div className="w-12 h-12">
+        <div className="w-12 h-12 shrink-0">
           <Image src="/logo.svg" alt={coachName} width={96} height={96} className="w-full h-full object-contain" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-gray-900">{coachName}</p>
-          <p className="text-xs text-gray-400">AIパーソナルコーチ</p>
+          <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5">
+            <span>
+              今日{' '}
+              <span className={`font-semibold tabular-nums ${overTarget ? 'text-rose-500' : 'text-gray-700'}`}>
+                {todayKcal.toLocaleString()}
+              </span>
+              <span className="text-gray-400"> / {targetCalories.toLocaleString()} kcal</span>
+            </span>
+            {streak >= 2 && (
+              <>
+                <span className="text-gray-300">•</span>
+                <span className="flex items-center gap-0.5">
+                  <Flame size={11} className="text-rose-400" strokeWidth={2} />
+                  <span className="font-semibold text-rose-500 tabular-nums">{streak}</span>
+                  <span className="text-gray-400">日連続</span>
+                </span>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
       {/* メッセージ一覧 */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50">
         {messages.length === 0 && (
-          <div className="text-center py-12 space-y-3">
-            <div className="w-28 h-28 mx-auto">
-              <Image src="/coach-talk.svg" alt={coachName} width={112} height={112} className="w-full h-full object-contain" />
+          <div className="text-center pt-10 pb-4 space-y-5">
+            <div className="space-y-3">
+              <div className="w-28 h-28 mx-auto">
+                <Image src="/coach-talk.svg" alt={coachName} width={112} height={112} className="w-full h-full object-contain" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-gray-700">こんにちは！{coachName}です。</p>
+                <p className="text-xs text-gray-400">気軽に話しかけてください。話題を選んでもOK。</p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-gray-700">こんにちは！{coachName}です。</p>
-              <p className="text-sm text-gray-400">今日の調子はどうですか？</p>
-            </div>
+            <SuggestedPrompts
+              prompts={SUGGESTED_PROMPTS}
+              variant="block"
+              onSelect={handleSend}
+              disabled={sending}
+            />
           </div>
         )}
         {messages.map((msg) => (
@@ -215,6 +293,16 @@ export default function CoachPage() {
         )}
         <div ref={bottomRef} />
       </div>
+
+      {/* 話題チップ: 既に会話があるときだけ入力欄上に出す */}
+      {messages.length > 0 && (
+        <SuggestedPrompts
+          prompts={SUGGESTED_PROMPTS}
+          variant="chips"
+          onSelect={handleSend}
+          disabled={sending}
+        />
+      )}
 
       {/* 入力欄 */}
       <ChatInput onSend={handleSend} disabled={sending} />
