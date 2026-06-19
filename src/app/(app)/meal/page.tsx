@@ -9,6 +9,7 @@ import PhotoUpload from '@/components/meal/PhotoUpload'
 import TextMealInput from '@/components/meal/TextMealInput'
 import FoodSearch from '@/components/meal/FoodSearch'
 import MealDateNavigator from '@/components/meal/MealDateNavigator'
+import CoachPreviewToast from '@/components/coach/CoachPreviewToast'
 import { getJstNow, jstDayRange } from '@/lib/datetime'
 import { fireProactiveAfterMeal } from '@/lib/proactive'
 import type { LucideIcon } from 'lucide-react'
@@ -46,9 +47,26 @@ export default function MealPage() {
 
   const [error, setError]       = useState<string | null>(null)
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  // 記録直後にコーチからのプロアクティブメッセージをプレビュー表示するための状態
+  const [coachPreview, setCoachPreview] = useState<string | null>(null)
+  const [coachName, setCoachName] = useState<string>('ミル')
 
   const supabase = createClient()
   const user = useUser()
+
+  // コーチ名をプレビュー表示で使うため、画面初期化時に1度だけ取得
+  useEffect(() => {
+    let cancelled = false
+    supabase
+      .from('users')
+      .select('coach_name')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (!cancelled && data?.coach_name) setCoachName(data.coach_name)
+      })
+    return () => { cancelled = true }
+  }, [supabase, user.id])
 
   // 選択日付の食事一覧を取得。jstDayRange で JST 0:00〜23:59 を ISO で出すので
   // タイムゾーン境界の事故が起きない（過去：旧 setHours(0,0,0,0) ローカルTZ依存）
@@ -110,7 +128,11 @@ export default function MealPage() {
     showSuccess(`食事を${successMessage()}`)
     // AI コーチからのプロアクティブメッセージを取りにいく（fire-and-forget）
     // 発火条件はサーバ側で判定するためクライアントは結果を気にしない
-    if (isTodaySelected) void fireProactiveAfterMeal()
+    if (isTodaySelected) {
+      void fireProactiveAfterMeal().then((msg) => {
+        if (msg) setCoachPreview(msg)
+      })
+    }
   }
 
   // 食品検索モードのとき、選択食品 × 入力グラム数からカロリー & PFC を計算
@@ -207,7 +229,11 @@ export default function MealPage() {
       await fetchMealsForDate(selectedDate)
       showSuccess(`食事を${successMessage()}`)
       // AI コーチからのプロアクティブメッセージを取りにいく（fire-and-forget）
-      if (isTodaySelected) void fireProactiveAfterMeal()
+      if (isTodaySelected) {
+      void fireProactiveAfterMeal().then((msg) => {
+        if (msg) setCoachPreview(msg)
+      })
+    }
     } catch {
       setError('保存に失敗しました')
     } finally {
@@ -288,6 +314,13 @@ export default function MealPage() {
           <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
             <p className="text-sm text-red-500">{error}</p>
           </div>
+        )}
+        {coachPreview && (
+          <CoachPreviewToast
+            coachName={coachName}
+            message={coachPreview}
+            onClose={() => setCoachPreview(null)}
+          />
         )}
 
         {/* 写真タブ */}
