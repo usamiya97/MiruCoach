@@ -34,22 +34,26 @@ export function getCoachUnread(): boolean {
 
 export const COACH_MESSAGE_ARRIVED_EVENT = MESSAGE_ARRIVED_EVENT
 
-// 食事ログ保存直後に呼ばれる fire-and-forget なプロアクティブ呼び出し。
-// 戻り値は無視してよい。サーバ側で発火条件・スロットルを判定するため、
-// クライアントは「投げて忘れる」だけで OK。
-export async function fireProactiveAfterMeal(): Promise<void> {
+// 食事ログ保存直後に呼ばれるプロアクティブ呼び出し。
+// 発火条件はサーバ側で判定するためクライアントは投げるだけ。
+// メッセージが返ってきた場合は string を返し、未読バッジを立てる。
+// 呼び出し側はその文字列を使ってプレビュートーストを表示することができる。
+export async function fireProactiveAfterMeal(): Promise<string | null> {
   try {
     const res = await fetch('/api/coach/proactive', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ trigger: 'after_meal' }),
     })
-    if (!res.ok) return
+    if (!res.ok) return null
     const data = (await res.json()) as { message: string | null }
     if (data.message) {
       markCoachUnread()
+      return data.message
     }
+    return null
   } catch {
     // 失敗時はサイレント
+    return null
   }
 }
