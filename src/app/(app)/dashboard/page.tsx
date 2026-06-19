@@ -6,6 +6,7 @@ import CalorieRing from '@/components/ui/CalorieRing'
 import DateNavigator from '@/components/ui/DateNavigator'
 import WeightChart from '@/components/ui/WeightChart'
 import WeeklySummary from '@/components/ui/WeeklySummary'
+import GoalProgressCard from '@/components/ui/GoalProgressCard'
 import UpgradeWaiter from '@/components/ui/UpgradeWaiter'
 import MealCard from '@/components/meal/MealCard'
 import { getJstNow, jstDayRange, jstDateAddDays, toJstDateStr } from '@/lib/datetime'
@@ -49,7 +50,7 @@ export default async function DashboardPage({
 
   const [profileRes, mealLogsRes, weightLogsRes, weeklyMealsRes] = await Promise.all([
     supabase.from('users')
-      .select('plan, coach_name, target_calories')
+      .select('plan, coach_name, target_calories, goal_weight, goal_target_date')
       .eq('id', user.id)
       .single(),
     supabase.from('meal_logs')
@@ -97,6 +98,23 @@ export default async function DashboardPage({
     return `${Number(mm)}/${Number(dd)}`
   }
   const weekRangeLabel = `${formatMd(weekStartDate)} - ${formatMd(todayStr)}`
+
+  // 目標進捗カード用: 直近の体重ペースを weightLogs (30日分) から算出
+  // - 2件以上ある時のみ pacePerDay を計算 (両端から線形ペース)
+  // - 同じ日に複数記録があっても気にせず一番古い・新しい logged_at を使う
+  let pacePerDay: number | null = null
+  if (weightLogs.length >= 2) {
+    const oldest = weightLogs[0]
+    const newest = weightLogs[weightLogs.length - 1]
+    const spanMs = new Date(newest.logged_at).getTime() - new Date(oldest.logged_at).getTime()
+    const spanDays = spanMs / (24 * 60 * 60 * 1000)
+    if (spanDays >= 1) {
+      pacePerDay = (newest.weight - oldest.weight) / spanDays
+    }
+  }
+  const goalWeight = profile?.goal_weight ?? null
+  const goalTargetDate = profile?.goal_target_date ?? null
+  const showGoalCard = isToday && goalWeight !== null && goalTargetDate !== null
 
   const weightByDate: Record<string, number> = {}
   for (const log of weightLogs) {
@@ -210,6 +228,17 @@ export default async function DashboardPage({
             )}
           </div>
         </div>
+
+        {/* 目標進捗（ゴール設定済み & 今日表示時のみ） */}
+        {showGoalCard && (
+          <GoalProgressCard
+            goalWeight={goalWeight!}
+            goalTargetDate={goalTargetDate!}
+            todayJst={todayStr}
+            currentWeight={latestWeight}
+            pacePerDay={pacePerDay}
+          />
+        )}
 
         {/* 今週のまとめ（今日表示時のみ） */}
         {isToday && (
